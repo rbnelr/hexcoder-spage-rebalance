@@ -1,0 +1,13 @@
+{
+	"name": "hexcoder-spage-rebalance",
+	"version": "1.0.0",
+	"title": "Space Age TFMG Mode",
+	"author": "Hexcoder",
+	"contact": "rbnelr@gmail.com",
+	"factorio_version": "2.1",
+	"dependencies": [
+		"base >= 2.1.7",
+		"space-age >= 2.1.7"
+	],
+	"description": ""
+}
