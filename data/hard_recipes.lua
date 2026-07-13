@@ -305,7 +305,7 @@ data:extend({
 		-- at 150% max prod on melting its 11
 		results = {
 			{type = "item", name = "iron-ore", amount = 10},
-			{type = "item", name = "stone", amount = 17}
+			{type = "item", name = "stone", amount = 17} -- reduce stone? but this is supposed to be a challenge to lava-void
 		},
 		allow_productivity = false
 	},
@@ -339,6 +339,10 @@ data:extend({
 		allow_productivity = false
 	},
 })
+-- in vanilla casting gears is base 2x better than assemblers, gets 50% prod for free, and 4 module slots (90% prod) + 90% prod on ores, which is ridiciously OP
+-- instead allow prod on ore step, nerf modules to 3, and disallow prod on regular casting (except steel)
+-- numbers chosen such that casting plates -> assembler with prod is not better than casting
+-- but this is super dodgy, probably need to check and document these numbers more
 meld(data.raw["recipe"]["iron-ore-melting"], {
 	order = "a[melting]-d[iron-ore-melting]",
 	allow_productivity = true,
@@ -350,6 +354,7 @@ meld(data.raw["recipe"]["copper-ore-melting"], {
 	maximum_productivity = 1.5,
 })
 
+-- plate casting 20% prod seems fair
 meld(data.raw["recipe"]["casting-iron"], {
 	energy_required = 15,
 	ingredients = {
@@ -366,11 +371,13 @@ meld(data.raw["recipe"]["casting-copper"], {
 	results = {{type = "item", name = "copper-plate", amount = 12}},
 	allow_productivity = false
 })
+-- gears, wires, sticks need better prod to avoid casting plate -> assembler being better, so need at least 1.2*1.3 prod (?)
 meld(data.raw["recipe"]["casting-iron-gear-wheel"], {
-	--  13 -> 2 in 2s or 25 -> 4 in 4.5s (~50% buff to in vanilla assembler)
+	-- in/out, base cost, prodded assembler, plate casting + prodded assembler, direct casting, base effiency %
+	-- 5/2: 2.5, 1.92, 1.60, 1.375 (5.5/4), unprodded 80% better
 	energy_required = 4.5,
 	ingredients = meld.overwrite({
-		{ type = "fluid", name = "molten-iron", amount = 25 },
+		{ type = "fluid", name = "molten-iron", amount = 55 },
 	}),
 	results = meld.overwrite({
 		{ type = "item", name = "iron-gear-wheel", amount = 4 },
@@ -378,12 +385,24 @@ meld(data.raw["recipe"]["casting-iron-gear-wheel"], {
 	allow_productivity = false,
 })
 meld(data.raw["recipe"]["casting-iron-stick"], {
-	energy_required = 1.2,
+	-- 1/2: 0.5, 0.38, 0.32, 0.28 (1.3/5), unprodded 78% better
+	energy_required = 2,
 	ingredients = meld.overwrite({
-		{ type = "fluid", name = "molten-iron", amount = 11 },
+		{ type = "fluid", name = "molten-iron", amount = 14 },
 	}),
 	results = meld.overwrite({
-		{ type = "item", name = "iron-stick", amount = 3 },
+		{ type = "item", name = "iron-stick", amount = 5 },
+	}),
+	allow_productivity = false,
+})
+meld(data.raw["recipe"]["casting-copper-cable"], {
+	-- 3/4: 0.75, 0.58, 0.48, 0.43 (1.3/3), unprodded 73% better
+	energy_required = 1.5,
+	ingredients = meld.overwrite({
+		{ type = "fluid", name = "molten-copper", amount = 13 },
+	}),
+	results = meld.overwrite({
+		{ type = "item", name = "copper-cable", amount = 3 },
 	}),
 	allow_productivity = false,
 })
@@ -408,25 +427,45 @@ meld(data.raw["recipe"]["casting-pipe-to-ground"], {
 	}),
 	allow_productivity = false,
 })
-meld(data.raw["recipe"]["casting-copper-cable"], {
-	--  14 -> 4 in 2s, or 10 -> 3 in 1.5s (~50% buff to vanilla assembler)
-	energy_required = 1.5,
+meld(data.raw["recipe"]["casting-steel"], {
+	-- 6/1: 6, 5, 4.16, 3.75, unprodded 60% better, prodded 108% better
+	energy_required = 20,
 	ingredients = meld.overwrite({
-		{ type = "fluid", name = "molten-copper", amount = 10 },
+		{ type = "item", name = "carbon", amount = 1 },
+		{ type = "fluid", name = "molten-iron", amount = 225 },
 	}),
 	results = meld.overwrite({
-		{ type = "item", name = "copper-cable", amount = 3 },
+		{ type = "item", name = "steel-plate", amount = 6 },
 	}),
-	allow_productivity = false,
-})
-meld(data.raw["recipe"]["casting-steel"], {
-	--allow_productivity = true,
+	allow_productivity = true,
 })
 meld(data.raw["recipe"]["casting-low-density-structure"], {
-	--allow_productivity = true,
+	-- for some wierd reason, in vanilla the LDS casting recipe has a higher copper cost than the assembler
+	-- though it is negated by the free 50% prod
+	energy_required = 15,
+	ingredients = meld.overwrite({
+		{ type = "item", name = "plastic-bar", amount = 5 },
+		{ type = "fluid", name = "molten-copper", amount = 165 },
+		{ type = "fluid", name = "molten-iron", amount = 80 },
+	}),
+	results = meld.overwrite({
+		{ type = "item", name = "low-density-structure", amount = 1 },
+	}),
+	allow_productivity = true,
 })
 meld(data.raw["recipe"]["concrete-from-molten-iron"], {
-	--allow_productivity = true,
+	-- like LDS, here the iron cost is 2x compared to assembler, maybe to account for melting+casting 50% free prod?
+	-- barely matters, but lets buff it slightly?
+	energy_required = 10,
+	ingredients = meld.overwrite({
+		{ type = "item", name = "stone-brick", amount = 5 },
+		{ type = "fluid", name = "molten-iron", amount = 14 },
+		{ type = "fluid", name = "water", amount = 100 },
+	}),
+	results = meld.overwrite({
+		{ type = "item", name = "concrete", amount = 12 },
+	}),
+	allow_productivity = true,
 })
 
 meld(data.raw["technology"]["foundry"], {

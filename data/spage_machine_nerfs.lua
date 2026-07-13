@@ -65,23 +65,23 @@ meld(data.raw["recipe"]["thruster-fuel"], {
 	energy_required = 2,
 	ingredients = meld.overwrite({
 		{type="item", name="carbon", amount=10}, -- was 2, lots of fuel needed
-		{type="fluid", name="water", amount=15}, -- was 10
+		{type="fluid", name="water", amount=10}, -- was 10
 	}),
 	results = meld.overwrite({
 		{type="fluid", name="thruster-fuel", amount=150}, -- was 75
 	}),
-	localised_description = "And inefficient method to produce hydrocarbon fuel"
+	localised_description = "And inefficient method to produce hydrocarbon fuel."
 })
 meld(data.raw["recipe"]["thruster-oxidizer"], {
 	energy_required = 5, -- slow, lore is electrolysis to get oxygen?
 	ingredients = meld.overwrite({
 		{type="item", name="iron-stick", amount=1}, -- was 2, this is just the electrode
-		{type="fluid", name="water", amount=32}, -- was 10
+		{type="fluid", name="water", amount=42}, -- was 10
 	}),
 	results = meld.overwrite({
 		{type="fluid", name="thruster-oxidizer", amount=150}, -- was 75
 	}),
-	localised_description = "Electrolysis of water using iron electrodes.\nLiquid oxygen is captured but the volatile hydrogen sadly escapes."
+	localised_description = "Electrolysis of water using iron electrodes.\nLiquid oxygen is captured but all hydrogen leaks."
 })
 
 -- Ideas: (Space AJ Rebalance)
