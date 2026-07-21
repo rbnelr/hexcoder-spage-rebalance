@@ -1,4 +1,4 @@
 mod_name = "hexcoder-spage-rebalance-"
 
-require("data/rcu").data()
-require("data/space_sci").data()
+require("script/rcu").data()
+require("script/space_sci").data()

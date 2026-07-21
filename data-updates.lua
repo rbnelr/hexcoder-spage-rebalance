@@ -1,11 +1,11 @@
 mod_name = "hexcoder-spage-rebalance-"
 meld = require("__core__.lualib.meld")
 
-require("data/rcu").updates()
-require("data/platform_drag")
-require("data/fun_promethium")
-require("data/hard_recipes")
-require("data/spage_machine_nerfs")
-require("data/space_sci").updates()
-
--- TODO: space connection distance like 10x
+require("script/rcu").updates()
+require("script/space_travel").updates()
+require("script/fun_promethium")
+require("script/hard_recipes")
+require("script/spage_machine_nerfs")
+require("script/space_sci").updates()
+require("script/fulgora_defense_drones").updates()
+require("script/misc").updates()

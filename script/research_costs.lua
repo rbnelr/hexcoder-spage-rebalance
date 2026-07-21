@@ -54,6 +54,20 @@ function M.final_fixes()
 		tech.unit.count = tech.unit.count * 3.5
 	end
 	
+	if mods["CargoBayLimitResearch"] then
+		meld(data.raw["technology"]["cargo-bay-limit-1"], {
+			unit = { count = 700 } -- was 500
+		})
+		meld(data.raw["technology"]["cargo-bay-limit-2"], {
+			unit = { count = 1200, -- was 1000
+			         ingredients = meld.append({{"production-science-pack", 1}}) }
+		})
+		meld(data.raw["technology"]["cargo-bay-limit-3"], {
+			unit = { count = 2000, -- was 2000
+			         ingredients = meld.append({{"production-science-pack", 1}, {"utility-science-pack", 1}}) }
+		})
+	end
+	
 	-- mining prod scales crazy
 	-- maybe add more levels with additional science packs and manually adjust counts (don't scale with number of packs?)
 	

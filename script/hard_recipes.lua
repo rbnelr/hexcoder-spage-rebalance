@@ -202,17 +202,24 @@ meld(data.raw["recipe"]["production-science-pack"], {
 --	prerequisites = meld.append({"productivity-module-2"})
 --})
 
--- TODO: tune this
+meld(data.raw["recipe"]["beacon"], {
+	ingredients = meld.overwrite({
+		{ type = "item", name = "steel-plate",           amount = 4 },
+		{ type = "item", name = "copper-cable",          amount = 30 },
+		{ type = "item", name = "electronic-circuit",    amount = 25 },
+		{ type = "item", name = "advanced-circuit",      amount = 10 }
+	}),
+})
 meld(data.raw["recipe"]["utility-science-pack"], {
 	energy_required = 36,
 	ingredients = meld.overwrite({
-		{ type = "item", name = "processing-unit",       amount = 2 },
-		{ type = "item", name = "low-density-structure", amount = 3 },
-		{ type = "item", name = "logistic-robot",        amount = 3 }, -- just make this the frame again?
-		{ type = "item", name = "beacon",                amount = 1 } --- substation
+		{ type = "item", name = "processing-unit",       amount = 4 },
+		{ type = "item", name = "low-density-structure", amount = 5 },
+		{ type = "item", name = "flying-robot-frame",    amount = 2 },
+		{ type = "item", name = "beacon",                amount = 1 }
 	}),
 	results = meld.overwrite({
-		{ type = "item", name = "utility-science-pack", amount = 4 }
+		{ type = "item", name = "utility-science-pack", amount = 6 }
 	}),
 })
 meld(data.raw["technology"]["utility-science-pack"], {
@@ -268,7 +275,7 @@ data:extend({
 		energy_required = 30,
 		ingredients = {
 			{type = "fluid", name = "lava", amount = 1000},
-			{type = "item", name = "calcite", amount = 3},
+			{type = "item", name = "calcite", amount = 2},
 		},
 		results = {
 			{type = "fluid", name = "molten-iron", amount_min = 100, amount_max = 400},

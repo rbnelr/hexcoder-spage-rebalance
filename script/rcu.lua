@@ -10,7 +10,8 @@ function M.data()
 			icon = "__hexcoder-spage-rebalance__/graphics/rocket-control-unit.png",
 			order = "d[rocket-parts]-c[rocket-control-unit]",
 			subgroup = "intermediate-product",
-			stack_size = 10
+			stack_size = 25,
+			weight = 8000, -- 125 / rocket
 		},
 		{
 			type = "recipe",

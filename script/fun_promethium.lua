@@ -1,7 +1,9 @@
 
 ---- Heating tower:
--- allow in space (is this op with carbon or something?)
 -- nerf power (still works fine on aquilo for me, and makes gleba powerplant not as OP)
+-- allow in space
+-- Might pair well with carbon as fuel, which is not desirable, though
+-- What if we allow boiler instead? is that less power efficient?
 meld(data.raw["reactor"]["heating-tower"], {
 	surface_conditions = meld.delete(),
 	consumption = "14.25MW",

@@ -1,6 +1,9 @@
 mod_name = "hexcoder-spage-rebalance-"
 
+require("script/fulgora_defense_drones").control()
+
 -- Trigger pollution on rocket launch
+-- TODO: reduce this with rocket part efficiency research?
 -- Stolen from  dirty-launches  -  Blooha77
 script.on_event(defines.events.on_rocket_launched, function(event)
 	--game.print("on_rocket_launched: "..serpent.block{event})
