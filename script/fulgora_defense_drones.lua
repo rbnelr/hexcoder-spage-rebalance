@@ -1,4 +1,3 @@
-
 local M = {}
 
 local DRONE_FORCE = "enemy-fulgoran-drones"
@@ -6,7 +5,7 @@ local IS_DRONE = {
 	["defender"] = true,
 	["distractor"] = true,
 	["destroyer"] = true,
-	["laser-turret"] = true, -- testing
+	--["laser-turret"] = true, -- testing
 }
 local TARGETS = {
 	"mining-drill",
@@ -14,8 +13,9 @@ local TARGETS = {
 	"radar",
 	--"roboport" -- dont want to be disabled, but can't be anyway?
 	--"lab",
-	"pump", 
+	"inserter", "pump",
 	--"lamp", "arithmetic-combinator", "decider-combinator", "selector-combinator",
+	"ammo-turret", "electric-turret",
 }
 local VAULT_DEFENSE_RADIUS = 50
 local MAX_POLL = 8 -- rotate through list of damaged buildings, checking MAX_POLL per tick
@@ -30,6 +30,60 @@ function M.updates()
 			e.allow_run_time_change_of_is_military_target = true
 		end
 	end
+	
+	meld(data.raw["combat-robot"]["defender"], {
+		resistances = meld.overwrite{
+			{ type = "acid", percent = 80 },
+			{ type = "fire", percent = 95 },
+			{ type = "physical", percent = 30 },
+			{ type = "laser", percent = 10 },
+			{ type = "electric", percent = 70 }
+		},
+		max_health = 100,
+		time_to_live = 45*60
+	})
+	meld(data.raw["combat-robot"]["distractor"], {
+		resistances = meld.overwrite{
+			{ type = "acid", percent = 80 },
+			{ type = "fire", percent = 95 },
+			{ type = "physical", percent = 70 },
+			{ type = "laser", percent = 70 },
+			{ type = "electric", percent = 80 }
+		},
+		max_health = 280,
+		time_to_live = 60*60
+	})
+	meld(data.raw["combat-robot"]["destroyer"], {
+		resistances = meld.overwrite{
+			{ type = "acid", percent = 80 },
+			{ type = "fire", percent = 95 },
+			{ type = "physical", percent = 55 },
+			{ type = "laser", percent = 65 },
+			{ type = "electric", percent = 65 }
+		},
+		max_health = 175,
+		time_to_live = 65*60
+	})
+	
+	--local robot1 = table.deepcopy(data.raw["combat-robot"]["defender"])
+	--local robot2 = table.deepcopy(data.raw["combat-robot"]["distractor"])
+	--local robot3 = table.deepcopy(data.raw["combat-robot"]["destroyer"])
+	--meld(robot1, { name = "fulgoran-defender",
+	--	localised_name = {"", {"entity-name.defender"}, " (fulgoran)"},
+	--	time_to_live = 40*60
+	--})
+	--meld(robot2, { name = "fulgoran-distractor",
+	--	localised_name = {"", {"entity-name.distractor"}, " (fulgoran)"},
+	--	time_to_live = 60*60
+	--})
+	--meld(robot3, { name = "fulgoran-destroyer",
+	--	localised_name = {"", {"entity-name.destroyer"}, " (fulgoran)"},
+	--	time_to_live = 60*60
+	--})
+	--data:extend{ robot1, robot2, robot3 }
+	
+	data.raw["ammo-turret"]["gun-turret"].rotation_speed = 0.002
+	data.raw["electric-turret"]["laser-turret"].rotation_speed = 0.06
 end
 
 function M.control()
@@ -161,9 +215,9 @@ function M.control()
 		
 		local wave = storage.bot_wave or {}
 		storage.bot_wave = wave
-		spawn_drones(wave, surface, position, hub, "defender", 55)
-		spawn_drones(wave, surface, position, hub, "distractor", 30)
-		spawn_drones(wave, surface, position, hub, "destroyer", 20)
+		spawn_drones(wave, surface, position, hub, "defender", 35)
+		spawn_drones(wave, surface, position, hub, "distractor", 12)
+		spawn_drones(wave, surface, position, hub, "destroyer", 10)
 	end
 	
 	script.on_nth_tick(60*10, function(event)
@@ -297,7 +351,7 @@ function M.control()
 		--game.print("on_player_repaired_entity: ".. serpent.line(event))
 	end)
 	
-	for _, event in ipairs({
+	for _, event in pairs({
 		defines.events.on_built_entity,
 		defines.events.on_robot_built_entity,
 		defines.events.on_space_platform_built_entity,
@@ -354,7 +408,13 @@ function M.control()
 		{filter="final-health", value=0, comparison="<=", mode="and"},
 		{filter="type", type="radar"},
 		{filter="final-health", value=0, comparison="<=", mode="and"},
+		{filter="type", type="inserter"},
+		{filter="final-health", value=0, comparison="<=", mode="and"},
 		{filter="type", type="pump"},
+		{filter="final-health", value=0, comparison="<=", mode="and"},
+		{filter="type", type="ammo-turret"},
+		{filter="final-health", value=0, comparison="<=", mode="and"},
+		{filter="type", type="electric-turret"},
 		{filter="final-health", value=0, comparison="<=", mode="and"},
 	})
 	
@@ -362,26 +422,36 @@ function M.control()
 		local surface = game.get_surface("fulgora")
 		local count = #bots
 		local tick = game.tick
-		for idx,bot in ipairs(bots) do
+		local j = 1
+		for idx,bot in pairs(bots) do
 			-- move all at once (robotic hivemind feeling)
 			-- or move staggered
 			-- or move in random intervals (including switching target if target dies)
 			-- maybe switch target to closest if it dies, but move to purely random otherwise?
 			-- could also divide robots into clusters and stagger clusters, might look cool
-			if bot.valid
-				--and (tick % 300) == 0
-				--and (tick % 300) == math.floor(idx / count * 300)
-				and (tick % 300) == math.floor(math.floor(idx / 6) / count * 300)
-			then
-				local target = random_military_target(surface, TEST_POS)
-				if target and target.valid then
-					-- abuse this to make defenders and destroyers move to targets
-					-- unfortunately this only appears to work if the force matches,
-					--  so I'd have to spawn invisible enemy (simple?) entities where the buildings are
-					bot.combat_robot_owner = target
+			if bot.valid then
+				if
+				--	tick % 300) == 0
+				--	(tick % 300) == math.floor(idx / count * 300)
+					(tick % 300) == math.floor(math.floor(idx / 4) * 4 / count * 300)
+				then
+					local target = random_military_target(surface, TEST_POS)
+					if target and target.valid then
+						-- abuse this to make defenders and destroyers move to targets
+						-- unfortunately this only appears to work if the force matches,
+						--  so I'd have to spawn invisible enemy (simple?) entities where the buildings are
+						bot.combat_robot_owner = target
+					end
 				end
+				
+				if j < idx then -- keep contiguous
+					bots[j] = bot -- safe?
+					bots[idx] = nil
+				end
+				j = j+1
 			else
-				bots[idx] = nil -- safe?
+				--bots[idx] = nil -- safe?
+				bots[idx] = nil
 			end
 		end
 		

@@ -1,5 +1,6 @@
 local util = {}
 
+-- good idea, but this could be better
 function util.overwrite_by_name(values)
 	return meld.invoke(function(list)
 		for k,v in pairs(list) do
