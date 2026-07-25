@@ -13,12 +13,6 @@ meld(data.raw["reactor"]["heating-tower"], {
 
 ------ Item stack and rocket rebalance to encourage production in space
 
-meld(data.raw["item"]["processing-unit"], {
-	stack_size = 40,
-	--ingredient_to_weight_coefficient = 0.5, --> results in 160 (4 Stacks)
-	weight = 8333, -- 120 / rocket
-})
-
 meld(data.raw["item"]["quantum-processor"], {
 	stack_size = 8,
 	weight = 15625, -- 64 / rocket

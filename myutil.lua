@@ -1,7 +1,7 @@
-local util = {}
+local myutil = {}
 
 -- good idea, but this could be better
-function util.overwrite_by_name(values)
+function myutil.overwrite_by_name(values)
 	return meld.invoke(function(list)
 		for k,v in pairs(list) do
 			for _,val in pairs(values) do
@@ -14,7 +14,7 @@ function util.overwrite_by_name(values)
 		return list
 	end)
 end
-function util.delete_recipe_by_name(values)
+function myutil.delete_recipe_by_name(values)
 	return meld.invoke(function(list)
 		local new_list = {}
 		for k,v in pairs(list) do
@@ -33,4 +33,4 @@ function util.delete_recipe_by_name(values)
 	end)
 end
 
-return util
+return myutil

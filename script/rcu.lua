@@ -11,7 +11,7 @@ function M.data()
 			order = "d[rocket-parts]-c[rocket-control-unit]",
 			subgroup = "intermediate-product",
 			stack_size = 25,
-			weight = 8000, -- 125 / rocket
+			weight = 10000, -- 100 / rocket
 		},
 		{
 			type = "recipe",
@@ -78,7 +78,6 @@ function M.data()
 end
 
 function M.updates()
-	-- Stolen from  rcu-restored_1.1.2  -  SilentSimulacrum
 	data.raw["recipe"]["rocket-part"].ingredients = {
 		{ type = "item", name = "rocket-control-unit",   amount = 1 },
 		{ type = "item", name = "low-density-structure", amount = 1 },

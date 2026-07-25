@@ -19,14 +19,14 @@ function M.final_fixes()
 	})
 	meld(data.raw["technology"]["elevated-rail"], {
 		unit = { count = 160, -- was 100
-		         ingredients = meld.append({{"space-science-pack", 1}}) }
+		         ingredients = meld.append{{"space-science-pack", 1}} }
 	})
 	meld(data.raw["technology"]["nuclear-fuel-reprocessing"], { -- 50 is a joke
 		unit = { count = 220 } -- was 50
 	})
 	meld(data.raw["technology"]["battery-mk2-equipment"], {
 		unit = { count = 350, -- was 100
-		         ingredients = meld.append({{"space-science-pack", 1}}) }
+		         ingredients = meld.append{{"space-science-pack", 1}} }
 	})
 	meld(data.raw["technology"]["battery-mk3-equipment"], {
 		unit = { count = 900 }, -- was 500
@@ -37,11 +37,11 @@ function M.final_fixes()
 	
 	meld(data.raw["technology"]["power-armor-mk2"], {
 		unit = { count = 600, -- was 400
-			     ingredients = meld.append({{"space-science-pack", 1}}) }
+			     ingredients = meld.append{{"space-science-pack", 1}} }
 	})
 	meld(data.raw["technology"]["fission-reactor-equipment"], {
 		unit = { count = 800, -- was 200
-		         ingredients = meld.append({{"space-science-pack", 1}}) }
+		         ingredients = meld.append{{"space-science-pack", 1}} }
 	})
 	
 	for _,num in pairs({"1","2","3","4","5","6"}) do
@@ -60,11 +60,11 @@ function M.final_fixes()
 		})
 		meld(data.raw["technology"]["cargo-bay-limit-2"], {
 			unit = { count = 1200, -- was 1000
-			         ingredients = meld.append({{"production-science-pack", 1}}) }
+			         ingredients = meld.append{{"production-science-pack", 1}} }
 		})
 		meld(data.raw["technology"]["cargo-bay-limit-3"], {
 			unit = { count = 2000, -- was 2000
-			         ingredients = meld.append({{"production-science-pack", 1}, {"utility-science-pack", 1}}) }
+			         ingredients = meld.append{{"production-science-pack", 1}, {"utility-science-pack", 1}} }
 		})
 	end
 	
@@ -80,6 +80,7 @@ function M.final_fixes()
 	end
 	
 	-- nerf infinite resource processing productivity research, but keep mining prod
+	--TODO: analyze and nerf robot speed
 	local bonuses = {
 		["carbonic-asteroid-crushing"] = 0.05,
 		["oxide-asteroid-crushing"] = 0.05,
@@ -143,6 +144,23 @@ function M.final_fixes()
 				end
 			end
 		end
+	end
+	
+	-- nerf robot move speed
+	for i,v in pairs({
+		[1] = 0.50, -- 35%	 35% -> 50%	 50%
+		[2] = 0.45, -- 40%	 75% -> 45%	 95%
+		[3] = 0.40, -- 45%	120% -> 40%	135%
+		[4] = 0.40, -- 55%	175% -> 40%	175%
+		[5] = 0.35, -- 65%	240% -> 35%	210%
+		[6] = 0.35, -- 65%	305% -> 35%	245%
+		[7] = 0.30, -- 65%	370% -> 30%	275%
+		-- inf 8       65%	435% -> 30%	305%
+		-- inf 9       65%	500% -> 30%	335%
+		-- inf 10      65%	565% -> 30%	365%
+	}) do
+		local tech = data.raw["technology"]["worker-robots-speed-"..i]
+		tech.effects[1].modifier = v
 	end
 end
 

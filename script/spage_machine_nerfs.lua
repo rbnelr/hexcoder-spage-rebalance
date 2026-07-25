@@ -1,4 +1,3 @@
-local util = require("util")
 
 local function set_belt_speed(belt, underground, splitter, speed)
 	meld(data.raw["transport-belt"][belt], {
@@ -35,6 +34,15 @@ end
 --set_belt_speed("fast-transport-belt", "underground-belt", "splitter", 45)
 --set_belt_speed("express-transport-belt", "express-underground-belt", "express-splitter", 75)
 --set_belt_speed("turbo-transport-belt", "turbo-underground-belt", "turbo-splitter", 112.5)
+
+meld(data.raw["item"]["processing-unit"], {
+	stack_size = 40,
+	--ingredient_to_weight_coefficient = 0.5, --> results in 160 (4 Stacks)
+	weight = 8333, -- 120 / rocket
+})
+meld(data.raw["item"]["low-density-structure"], {
+	stack_size = 20, -- it's low density, duh
+})
 
 meld(data.raw["recipe"]["rocket-part"], {
 	ingredients = meld.overwrite({
@@ -77,22 +85,31 @@ meld(data.raw["resource"]["tungsten-ore"], {
 -- so either need to unlock mining with fluid with this tech like tungsten_mining_require_lube mod
 -- or put the drill behind the uranium mining tech, which actually just unlocks this, so I'll rename it as I think this makes a lot more sense
 meld(data.raw["technology"]["big-mining-drill"], {
-	prerequisites = meld.append({"uranium-mining"})
+	prerequisites = meld.append{"uranium-mining"}
 })
 meld(data.raw["technology"]["uranium-mining"], {
 	localised_name = "Mining with fluid",
 	localised_description = "Allows you to use fluids to mine resources.\nLike using [fluid=sulfuric-acid] in [entity=electric-mining-drill] to mine [entity=uranium-ore]",
 })
 
+meld(data.raw["furnace"]["electric-furnace"], {
+	energy_source = {
+		emissions_per_minute = { pollution = 2 }, -- was 1 (0.5/speed -> 1/speed)
+	},
+})
 meld(data.raw["assembling-machine"]["foundry"], {
 	module_slots = 3,
-	crafting_speed = 3, -- was 4
+	crafting_speed = 3.5, -- was 4
 	energy_source = {
-		emissions_per_minute = { pollution = 4.5 }, -- was 6
+		-- why are these so polluting in vanilla? was more polluting than electric furnance at speed=2 pollution=1 !
+		emissions_per_minute = { pollution = 3.15 }, -- was 6 (1.5/speed (but lots of prod) -> 0.9/speed)
 	},
 	effect_receiver = {
 		base_effect = meld.delete() -- no base prod
 	},
+})
+meld(data.raw["furnace"]["recycler"], {
+	module_slots = 2, -- was 4
 })
 meld(data.raw["assembling-machine"]["electromagnetic-plant"], {
 	module_slots = 4, -- was 5
@@ -101,6 +118,14 @@ meld(data.raw["assembling-machine"]["electromagnetic-plant"], {
 		base_effect = {
 			productivity = 0.2 -- was 0.5
 		}
+	},
+	energy_source = {
+		emissions_per_minute = { pollution = 2.5 }, -- was 4, now less polluting than assembler
+	},
+})
+meld(data.raw["assembling-machine"]["cryogenic-plant"], {
+	energy_source = {
+		emissions_per_minute = { pollution = 10 }, -- was 6, now more polluting than chem plant
 	},
 })
 
@@ -118,15 +143,15 @@ meld(data.raw["planet"]["nauvis"], {
 
 meld(data.raw["recipe"]["metallic-asteroid-crushing"], {
 	energy_required = 5, -- was 2
-	results = util.overwrite_by_name{{type="item", name="iron-ore", amount_min=8, amount_max=20}}, -- was 20
+	results = myutil.overwrite_by_name{{type="item", name="iron-ore", amount_min=8, amount_max=20}}, -- was 20
 })
 meld(data.raw["recipe"]["carbonic-asteroid-crushing"], {
 	energy_required = 4.5,
-	results = util.overwrite_by_name{{type="item", name="carbon", amount_min=6, amount_max=12}},
+	results = myutil.overwrite_by_name{{type="item", name="carbon", amount_min=6, amount_max=12}},
 })
 meld(data.raw["recipe"]["oxide-asteroid-crushing"], {
 	energy_required = 4,
-	results = util.overwrite_by_name{{type="item", name="ice", amount_min=2, amount_max=5}},
+	results = myutil.overwrite_by_name{{type="item", name="ice", amount_min=2, amount_max=5}},
 })
 
 meld(data.raw["recipe"]["advanced-metallic-asteroid-crushing"], {
@@ -174,26 +199,7 @@ meld(data.raw["recipe"]["advanced-thruster-oxidizer"], {
 	localised_description = "Electrolysis of water using copper-wrapped electrodes.\nLiquid oxygen is captured but most hydrogen leaks away."
 })
 
--- split advanced-asteroid-processing into 3 parts for the 3 inner planets for more platform progression
--- TODO:
-meld(data.raw["technology"]["advanced-asteroid-processing"], {
-	effects = meld.overwrite{
-		--{type = "unlock-recipe", recipe = "advanced-metallic-asteroid-crushing"},
-		{type = "unlock-recipe", recipe = "advanced-carbonic-asteroid-crushing"},
-		{type = "unlock-recipe", recipe = "advanced-oxide-asteroid-crushing"},
-		{type = "unlock-recipe", recipe = "advanced-thruster-fuel"},
-		--{type = "unlock-recipe", recipe = "advanced-thruster-oxidizer"}
-	},
-	unit = {
-		count = 800,
-	}
-})
-meld(data.raw["technology"]["asteroid-productivity"], {
-	prerequisites = meld.append{"advanced-metallic-asteroid-processing"},
-})
-meld(data.raw["technology"]["planet-discovery-aquilo"], {
-	prerequisites = meld.append{"advanced-metallic-asteroid-processing"},
-})
+-- TODO: advanced fuel recipe
 data:extend({
 	{
 		type = "technology",
@@ -220,4 +226,67 @@ data:extend({
 			time = 60
 		}
 	},
+	{
+		type = "technology",
+		name = "advanced-oxide-asteroid-processing",
+		localised_name = "Advanced oxide asteroid processing",
+		icon = "__space-age__/graphics/technology/advanced-asteroid-processing.png", -- TODO: make reasonable icon
+		icon_size = 256,
+		effects = {
+			{type = "unlock-recipe", recipe = "advanced-oxide-asteroid-crushing"},
+		},
+		prerequisites = {"production-science-pack", "utility-science-pack", "electromagnetic-science-pack"},
+		unit = {
+			count = 800,
+			ingredients = {
+				{"automation-science-pack", 1},
+				{"logistic-science-pack", 1},
+				{"chemical-science-pack", 1},
+				{"production-science-pack", 1},
+				{"utility-science-pack", 1},
+				{"space-science-pack", 1},
+				{"electromagnetic-science-pack", 1}
+			},
+			time = 60
+		}
+	},
+	{
+		type = "technology",
+		name = "advanced-carbonic-asteroid-processing",
+		localised_name = "Advanced carbonic asteroid processing",
+		icon = "__space-age__/graphics/technology/advanced-asteroid-processing.png", -- TODO: make reasonable icon
+		icon_size = 256,
+		effects = {
+			{type = "unlock-recipe", recipe = "advanced-carbonic-asteroid-crushing"},
+		},
+		prerequisites = {"production-science-pack", "utility-science-pack", "agricultural-science-pack"},
+		unit = {
+			count = 800,
+			ingredients = {
+				{"automation-science-pack", 1},
+				{"logistic-science-pack", 1},
+				{"chemical-science-pack", 1},
+				{"production-science-pack", 1},
+				{"utility-science-pack", 1},
+				{"space-science-pack", 1},
+				{"agricultural-science-pack", 1}
+			},
+			time = 60
+		}
+	},
+})
+
+data.raw["technology"]["advanced-asteroid-processing"] = nil
+
+meld(data.raw["technology"]["asteroid-productivity"], {
+	prerequisites = meld.overwrite{"advanced-metallic-asteroid-processing",
+	                 "advanced-oxide-asteroid-processing",
+	                 "advanced-carbonic-asteroid-processing"}
+})
+meld(data.raw["technology"]["planet-discovery-aquilo"], {
+	prerequisites = meld.overwrite{"rocket-turret", "heating-tower", "asteroid-reprocessing",
+		"advanced-metallic-asteroid-processing",
+		"advanced-oxide-asteroid-processing",
+		"advanced-carbonic-asteroid-processing"
+	}
 })

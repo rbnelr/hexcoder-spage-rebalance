@@ -1,14 +1,4 @@
-local util = require("util")
 
---meld(data.raw["recipe"]["iron-gear-wheel"], {
---	energy_required = 0.75,
---	ingredients = meld.overwrite({
---		{ type = "item", name = "iron-plate", amount = 3 },
---	}),
---	results = meld.overwrite({
---		{ type = "item", name = "iron-gear-wheel", amount = 1 }, -- oops... this being 2 was a buff, not nerf
---	}),
---})
 meld(data.raw["recipe"]["iron-gear-wheel"], {
 	energy_required = 1.5,
 	ingredients = meld.overwrite({
@@ -48,24 +38,13 @@ meld(data.raw["recipe"]["casting-steel"], {
 	}),
 })
 
---meld(data.raw["recipe"]["pipe-casting"], {
---	energy_required = 35,
---	ingredients = meld.overwrite({
---		{ type = "fluid", name = "molten-iron", amount = 30*4 }, -- TODO:
---		{ type = "item", name = "coal", amount = 1 },
---	}),
---	results = meld.overwrite({
---		{ type = "item", name = "steel-plate", amount = 4 },
---	}),
---})
-
 meld(data.raw["technology"]["engine"], {
-	effects = meld.append({
+	effects = meld.append{
 		{
 			type = "unlock-recipe",
 			recipe = "iron-stick"
 		}
-	})
+	}
 })
 meld(data.raw["recipe"]["engine-unit"], {
 	energy_required = 12,
@@ -163,7 +142,7 @@ meld(data.raw["recipe"]["military-science-pack"], {
 	}),
 })
 meld(data.raw["technology"]["military-science-pack"], {
-	prerequisites = meld.append({"gate"})
+	prerequisites = meld.append{"gate"}
 })
 
 meld(data.raw["recipe"]["chemical-science-pack"], {
@@ -175,7 +154,7 @@ meld(data.raw["recipe"]["chemical-science-pack"], {
 	}),
 })
 meld(data.raw["technology"]["chemical-science-pack"], {
-	prerequisites = meld.append({"battery"})
+	prerequisites = meld.append{"battery"}
 })
 
 meld(data.raw["recipe"]["electric-furnace"], {
@@ -199,7 +178,7 @@ meld(data.raw["recipe"]["production-science-pack"], {
 	}),
 })
 --meld(data.raw["technology"]["production-science-pack"], {
---	prerequisites = meld.append({"productivity-module-2"})
+--	prerequisites = meld.append{"productivity-module-2"}
 --})
 
 meld(data.raw["recipe"]["beacon"], {
@@ -223,10 +202,10 @@ meld(data.raw["recipe"]["utility-science-pack"], {
 	}),
 })
 meld(data.raw["technology"]["utility-science-pack"], {
-	prerequisites = meld.append({"effect-transmission"}) -- electric-energy-distribution-2
+	prerequisites = meld.append{"effect-transmission"} -- electric-energy-distribution-2
 })
 --meld(data.raw["technology"]["utility-science-pack"], {
---	prerequisites = meld.append({"effect-transmission"})
+--	prerequisites = meld.append{"effect-transmission"}
 --})
 
 -- Steel casting recipe: more efficent than my edited base from plate recipe
@@ -363,7 +342,7 @@ meld(data.raw["recipe"]["copper-ore-melting"], {
 
 -- plate casting 20% prod seems fair
 meld(data.raw["recipe"]["casting-iron"], {
-	energy_required = 15,
+	energy_required = 14,
 	ingredients = {
 		{type = "fluid", name = "molten-iron", amount = 100, fluidbox_multiplier = 4},
 	},
@@ -371,13 +350,14 @@ meld(data.raw["recipe"]["casting-iron"], {
 	allow_productivity = false
 })
 meld(data.raw["recipe"]["casting-copper"], {
-	energy_required = 15,
+	energy_required = 14,
 	ingredients = {
 		{type = "fluid", name = "molten-copper", amount = 100, fluidbox_multiplier = 4},
 	},
 	results = {{type = "item", name = "copper-plate", amount = 12}},
 	allow_productivity = false
 })
+
 -- gears, wires, sticks need better prod to avoid casting plate -> assembler being better, so need at least 1.2*1.3 prod (?)
 meld(data.raw["recipe"]["casting-iron-gear-wheel"], {
 	-- in/out, base cost, prodded assembler, plate casting + prodded assembler, direct casting, base effiency %
@@ -404,12 +384,13 @@ meld(data.raw["recipe"]["casting-iron-stick"], {
 })
 meld(data.raw["recipe"]["casting-copper-cable"], {
 	-- 3/4: 0.75, 0.58, 0.48, 0.43 (1.3/3), unprodded 73% better
-	energy_required = 1.5,
+	-- EM plant gets up to 60% prod, so adjust this again from 13->3 in 1.5 to 15->4 
+	energy_required = 2,
 	ingredients = meld.overwrite({
-		{ type = "fluid", name = "molten-copper", amount = 13 },
+		{ type = "fluid", name = "molten-copper", amount = 15 },
 	}),
 	results = meld.overwrite({
-		{ type = "item", name = "copper-cable", amount = 3 },
+		{ type = "item", name = "copper-cable", amount = 4 },
 	}),
 	allow_productivity = false,
 })
@@ -476,7 +457,7 @@ meld(data.raw["recipe"]["concrete-from-molten-iron"], {
 })
 
 meld(data.raw["technology"]["foundry"], {
-	--effects = util.delete_recipe_by_name{
+	--effects = myutil.delete_recipe_by_name{
 	--	{type="unlock-recipe", recipe="molten-iron-from-lava"},
 	--	{type="unlock-recipe", recipe="molten-copper-from-lava"},
 	--},
@@ -614,5 +595,99 @@ meld(data.raw["recipe"]["metallurgic-science-pack"], {
 	}),
 })
 meld(data.raw["technology"]["metallurgic-science-pack"], {
-	prerequisites = meld.append({"nuclear-power"})
+	prerequisites = meld.append{"nuclear-power"}
+})
+
+meld(data.raw["recipe"]["holmium-plate"], {
+	energy_required = 2,
+	categories = {"crafting-with-fluid"}
+})
+-- foundry version has to be more efficent or else its pointless to use foundry on fuglora
+local holmium_foundry = table.deepcopy(data.raw["recipe"]["holmium-plate"])
+meld(holmium_foundry, {
+	name = "holmium-casting",
+	localised_name = {"", "Holmium casting"},
+	energy_required = 3.2,
+	categories = {"metallurgy"},
+	ingredients = {
+		{type = "fluid", name = "holmium-solution", amount = 30, fluidbox_multiplier = 4},
+	},
+	results = {{type = "item", name = "holmium-plate", amount = 2}},
+	allow_productivity = true
+})
+data:extend{holmium_foundry}
+meld(data.raw["recipe"]["holmium-solution"], {
+	categories = meld.append{"cryogenics"}
+})
+
+meld(data.raw["recipe"]["electromagnetic-science-pack"], {
+	energy_required = 14,
+	-- maybe kinda lame since its needed in rockets anyway, but the most thematically fitting extra ingredient I can think of
+	ingredients = meld.append{{ type = "item", name = "rocket-control-unit", amount = 1 }}
+})
+
+meld(data.raw["recipe"]["destroyer-capsule"], {
+	ingredients = meld.append{{ type = "item", name = "supercapacitor", amount = 2 }}
+})
+meld(data.raw["technology"]["destroyer"], {
+	prerequisites = meld.append{"electromagnetic-plant"}
+})
+
+-- Make lvl 3 modules a bit more expensive
+for _,m in pairs{"speed-module-","efficiency-module-","productivity-module-","quality-module-"} do
+	meld(data.raw["recipe"][m.."3"], {
+		ingredients = myutil.overwrite_by_name{{type="item", name=m.."2", amount=5}}
+	})
+end
+
+meld(data.raw["recipe"]["speed-module-3"], {
+	ingredients = myutil.overwrite_by_name{{type="item", name="speed-module-2", amount=5}}
+})
+meld(data.raw["recipe"]["productivity-module-3"], {
+	ingredients = myutil.overwrite_by_name{{type="item", name="productivity-module-2", amount=5}}
+})
+
+-- Eff 3 on fulgora with supercond
+-- Quality 3 on ?
+meld(data.raw["recipe"]["efficiency-module-3"], {
+	ingredients = meld.overwrite{
+		{type="item", name="advanced-circuit", amount=5},
+		{type="item", name="processing-unit", amount=5},
+		{type="item", name="superconductor", amount=2},
+		{type="item", name="efficiency-module-2", amount=5},
+	}
+})
+meld(data.raw["recipe"]["quality-module-3"], {
+	ingredients = meld.overwrite{
+		{type="item", name="advanced-circuit", amount=5},
+		{type="item", name="processing-unit", amount=5},
+		{type="item", name="quantum-processor", amount=1},
+		{type="item", name="quality-module-2", amount=5},
+	}
+})
+meld(data.raw["technology"]["efficiency-module-3"], {
+	prerequisites = meld.overwrite{"electromagnetic-science-pack", "efficiency-module-2"},
+	unit = {
+		count = 300,
+		ingredients = {
+			{"automation-science-pack", 1},
+			{"logistic-science-pack", 1},
+			{"chemical-science-pack", 1},
+			{"space-science-pack", 1},
+			{"electromagnetic-science-pack", 1}
+		},
+	}
+})
+meld(data.raw["technology"]["quality-module-3"], {
+	prerequisites = meld.overwrite{"quantum-processor", "quality-module-2"},
+	unit = {
+		count = 500,
+		ingredients = {
+			{"automation-science-pack", 1},
+			{"logistic-science-pack", 1},
+			{"chemical-science-pack", 1},
+			{"space-science-pack", 1},
+			{"cryogenic-science-pack", 1}
+		},
+	}
 })

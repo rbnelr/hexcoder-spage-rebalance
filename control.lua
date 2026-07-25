@@ -1,6 +1,6 @@
 mod_name = "hexcoder-spage-rebalance-"
 
-require("script/fulgora_defense_drones").control()
+--require("script/fulgora_defense_drones").control()
 
 -- Trigger pollution on rocket launch
 -- TODO: reduce this with rocket part efficiency research?
