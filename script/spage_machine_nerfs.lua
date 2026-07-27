@@ -134,7 +134,8 @@ meld(data.raw["assembling-machine"]["cryogenic-plant"], {
 meld(data.raw["planet"]["nauvis"], {
 	asteroid_spawn_definitions = meld.invoke(function(list)
 		for _,def in pairs(list) do
-			def.probability = def.probability * 2
+			def.probability = def.probability * 4
+			def.speed = def.speed * 1.6
 		end
 		return list
 	end)
@@ -142,23 +143,23 @@ meld(data.raw["planet"]["nauvis"], {
 
 
 meld(data.raw["recipe"]["metallic-asteroid-crushing"], {
-	energy_required = 5, -- was 2
-	results = myutil.overwrite_by_name{{type="item", name="iron-ore", amount_min=8, amount_max=20}}, -- was 20
+	energy_required = 4, -- was 2
+	results = myutil.overwrite_by_name{{type="item", name="iron-ore", amount_min=8, amount_max=24}}, -- avg 16 was 20
 })
 meld(data.raw["recipe"]["carbonic-asteroid-crushing"], {
-	energy_required = 4.5,
-	results = myutil.overwrite_by_name{{type="item", name="carbon", amount_min=6, amount_max=12}},
+	energy_required = 3.5, -- was 2
+	results = myutil.overwrite_by_name{{type="item", name="carbon", amount_min=6, amount_max=12}}, -- was 10
 })
 meld(data.raw["recipe"]["oxide-asteroid-crushing"], {
-	energy_required = 4,
-	results = myutil.overwrite_by_name{{type="item", name="ice", amount_min=2, amount_max=5}},
+	energy_required = 3.2, -- was 2
+	results = myutil.overwrite_by_name{{type="item", name="ice", amount_min=2, amount_max=6}}, -- avg 4 was 5
 })
 
 meld(data.raw["recipe"]["advanced-metallic-asteroid-crushing"], {
-	energy_required = 10, -- was 5
+	energy_required = 8, -- was 5
 	results = meld.overwrite{
-		{type="item", name="iron-ore", amount_min=4, amount_max=10}, -- was 10
-		{type="item", name="copper-ore", amount_min=2, amount_max=4}, -- was 4
+		{type="item", name="iron-ore", amount_min=4, amount_max=12},  -- avg 8   (100%)  - was 10 (100%)
+		{type="item", name="copper-ore", amount_min=2, amount_max=5}, -- avg 3.5 (43.7%) - was 4  ( 40%)
 		{type="item", name="metallic-asteroid-chunk", amount=1, independent_probability=0.1, ignored_by_stats = 1},
 	},
 })
@@ -185,6 +186,7 @@ meld(data.raw["recipe"]["thruster-oxidizer"], {
 	}),
 	localised_description = "Electrolysis of water using iron electrodes.\nLiquid oxygen is captured but all hydrogen leaks away."
 })
+-- TODO: custom icon
 meld(data.raw["recipe"]["advanced-thruster-oxidizer"], {
 	energy_required = 12,
 	ingredients = meld.overwrite({

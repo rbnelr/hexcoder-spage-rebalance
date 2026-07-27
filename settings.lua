@@ -19,5 +19,14 @@ data:extend({
 		setting_type = "runtime-global",
 		default_value = 1000,
 		order = "aa"
+	},
+	{
+		type = "double-setting",
+		name = mod_name.."vault-defense-radius",
+		localised_name = "Vault Defense radius",
+		localised_description = "",
+		setting_type = "runtime-global",
+		default_value = 60,
+		order = "ab"
 	}
 })

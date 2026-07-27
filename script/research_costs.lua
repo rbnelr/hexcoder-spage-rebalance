@@ -68,6 +68,47 @@ function M.final_fixes()
 		})
 	end
 	
+	local NAUVIS_SCI_AND_SPACE = {
+		{"automation-science-pack", 1},
+		{"logistic-science-pack", 1},
+		{"chemical-science-pack", 1},
+		{"production-science-pack", 1},
+		{"utility-science-pack", 1},
+		{"space-science-pack", 1},
+	}
+	data:extend{
+		meld(table.deepcopy(data.raw["technology"]["rocket-part-productivity"]), {
+			name = "rocket-part-productivity-1",
+			prerequisites = {"production-science-pack", "utility-science-pack", "space-science-pack"},
+			unit = meld.overwrite{ count = 1000, ingredients = NAUVIS_SCI_AND_SPACE, time = 60 },
+			max_level = meld.delete(),
+		}),
+		meld(table.deepcopy(data.raw["technology"]["rocket-part-productivity"]), {
+			name = "rocket-part-productivity-2",
+			prerequisites = {"rocket-part-productivity-1"},
+			unit = meld.overwrite{ count = 3000, ingredients = NAUVIS_SCI_AND_SPACE, time = 60 },
+			max_level = meld.delete(),
+		}),
+		meld(table.deepcopy(data.raw["technology"]["rocket-part-productivity"]), {
+			name = "rocket-part-productivity-3",
+			unit = meld.overwrite{
+				count_formula = "1.5^(L-2)*3000", -- was 1.5^L*2000
+				ingredients = {
+					{"automation-science-pack", 1},
+					{"logistic-science-pack", 1},
+					{"chemical-science-pack", 1},
+					{"production-science-pack", 1},
+					{"utility-science-pack", 1},
+					{"space-science-pack", 1},
+					{"cryogenic-science-pack", 1},
+				},
+				time = 60
+			},
+			prerequisites = {"rocket-part-productivity-2"}
+		}),
+	}
+	data.raw["technology"]["rocket-part-productivity"] = nil
+	
 	-- mining prod scales crazy
 	-- maybe add more levels with additional science packs and manually adjust counts (don't scale with number of packs?)
 	
