@@ -1,4 +1,8 @@
 
+local M = {}
+
+function M.updates()
+
 ---- Heating tower:
 -- nerf power (still works fine on aquilo for me, and makes gleba powerplant not as OP)
 -- allow in space
@@ -155,3 +159,6 @@ meld(data.raw["recipe"]["promethium-science-pack"], {
     },
   },
 ]]
+end
+
+return M

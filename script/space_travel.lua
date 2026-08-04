@@ -29,8 +29,8 @@ function M.updates()
 	-- but if doubling width and height, and thus likely doubling thrusters, this formula retains the speed, not sure which is better
 	local replacement_for_width = "(weight / " .. weight_of_platform_foundation_tiles .. ") ^ 0.5 * " .. (shape_constant * drag_scale)
 
-	local breaking_fac = 2 -- 200% extra decell at 0 thrust, 0% at cutoff
-	local breaking_cutoff = 25 -- [thrust in MN/60]  25 = 1.5GN, one thruster has 6.1GN
+	local breaking_fac = 4 -- 400% extra decell at 0 thrust, 0% at cutoff
+	local breaking_cutoff = 20 -- [thrust in MN/60]  25 = 1.5GN, one thruster has 6.1GN
 	local breaking_expr = "(max("..breaking_fac.."*(1-thrust/"..breaking_cutoff.."), 0) + 1)"
 
 	-- TODO: I like slow accel, but deccel is so slow that stopping in response to asteroid damage is barely even viable

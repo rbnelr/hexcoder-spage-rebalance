@@ -1,4 +1,9 @@
 
+local M = {}
+
+function M.updates()
+
+-- More expensive basic resources
 meld(data.raw["recipe"]["iron-gear-wheel"], {
 	energy_required = 1.5,
 	ingredients = meld.overwrite({
@@ -71,8 +76,6 @@ meld(data.raw["recipe"]["electric-engine-unit"], {
 	}),
 })
 
--- green circ more expensive? or maybe just slower?
-
 meld(data.raw["recipe"]["advanced-circuit"], {
 	ingredients = meld.overwrite({
 		{ type = "item", name = "plastic-bar",    amount = 3 },
@@ -89,8 +92,6 @@ meld(data.raw["recipe"]["processing-unit"], {
 		{ type = "fluid", name = "sulfuric-acid",  amount = 16 },
 	}),
 })
-
--- foundry steel: molten iron + coal ?
 
 meld(data.raw["recipe"]["quantum-processor"], {
 	energy_required = 42,
@@ -110,118 +111,7 @@ meld(data.raw["recipe"]["quantum-processor"], {
 	}),
 })
 
-meld(data.raw["recipe"]["automation-science-pack"], {
-	energy_required = 6,
-	ingredients = meld.overwrite({
-		{ type = "item", name = "copper-cable",    amount = 3 },
-		{ type = "item", name = "burner-inserter", amount = 1 }
-	}),
-})
 
-meld(data.raw["recipe"]["long-handed-inserter"], {
-	ingredients = {
-		{ type = "item", name = "inserter", amount = 1 },
-		{ type = "item", name = "iron-stick", amount = 1 },
-		{ type = "item", name = "iron-gear-wheel", amount = 1 },
-	}
-})
-meld(data.raw["recipe"]["logistic-science-pack"], {
-	energy_required = 8,
-	ingredients = meld.overwrite({
-		{ type = "item", name = "long-handed-inserter", amount = 1 },
-		{ type = "item", name = "transport-belt",       amount = 2 }
-	}),
-})
-
-meld(data.raw["recipe"]["military-science-pack"], {
-	energy_required = 14,
-	ingredients = meld.overwrite({
-		{ type = "item", name = "piercing-rounds-magazine", amount = 3 },
-		{ type = "item", name = "grenade",                  amount = 1 },
-		{ type = "item", name = "gate",                     amount = 2 }
-	}),
-})
-meld(data.raw["technology"]["military-science-pack"], {
-	prerequisites = meld.append{"gate"}
-})
-
-meld(data.raw["recipe"]["chemical-science-pack"], {
-	energy_required = 28,
-	ingredients = meld.overwrite({
-		{ type = "item", name = "battery",          amount = 3 },
-		{ type = "item", name = "pump",             amount = 3 },
-		{ type = "item", name = "advanced-circuit", amount = 4 }
-	}),
-})
-meld(data.raw["technology"]["chemical-science-pack"], {
-	prerequisites = meld.append{"battery"}
-})
-
-meld(data.raw["recipe"]["electric-furnace"], {
-	ingredients = meld.overwrite({
-		{ type = "item", name = "steel-plate",      amount = 4 },
-		{ type = "item", name = "advanced-circuit", amount = 5 },
-		{ type = "item", name = "steel-furnace",    amount = 1 },
-	}),
-})
--- add concrete indirectly (or on utility-science?)
-meld(data.raw["recipe"]["production-science-pack"], {
-	energy_required = 28,
-	ingredients = meld.overwrite({
-		{ type = "item", name = "rail",                  amount = 40 },
-		{ type = "item", name = "electric-furnace",      amount = 2 },
-		{ type = "item", name = "hazard-concrete",       amount = 25 }, -- was assembler 2 in the other mod
-		{ type = "item", name = "productivity-module",   amount = 1 } -- "productivity-module-2"
-	}),
-	results = meld.overwrite({
-		{ type = "item", name = "production-science-pack", amount = 4 }
-	}),
-})
---meld(data.raw["technology"]["production-science-pack"], {
---	prerequisites = meld.append{"productivity-module-2"}
---})
-
-meld(data.raw["recipe"]["beacon"], {
-	ingredients = meld.overwrite({
-		{ type = "item", name = "steel-plate",           amount = 4 },
-		{ type = "item", name = "copper-cable",          amount = 30 },
-		{ type = "item", name = "electronic-circuit",    amount = 25 },
-		{ type = "item", name = "advanced-circuit",      amount = 10 }
-	}),
-})
-meld(data.raw["recipe"]["utility-science-pack"], {
-	energy_required = 36,
-	ingredients = meld.overwrite({
-		{ type = "item", name = "processing-unit",       amount = 4 },
-		{ type = "item", name = "low-density-structure", amount = 5 },
-		{ type = "item", name = "flying-robot-frame",    amount = 2 },
-		{ type = "item", name = "beacon",                amount = 1 }
-	}),
-	results = meld.overwrite({
-		{ type = "item", name = "utility-science-pack", amount = 6 }
-	}),
-})
-meld(data.raw["technology"]["utility-science-pack"], {
-	prerequisites = meld.append{"effect-transmission"} -- electric-energy-distribution-2
-})
---meld(data.raw["technology"]["utility-science-pack"], {
---	prerequisites = meld.append{"effect-transmission"}
---})
-
--- Steel casting recipe: more efficent than my edited base from plate recipe
--- calculate furnace(plate)->furnace(steel) (prod/non-prod)
---           foundry(molten)->foundry(plate)->furnace(steel) (prod/non-prod)
---           foundry(molten)->foundry(steel) (prod/non-prod)
--- with no base prod, what steel recipe makes sense without being too strong (eg 4x the steel as vanilla gets)
-
--- huge carbon demand for tungsten carbide, but allow crushers on ground, so can drop asteroid chunks?
- -- why did nobody ever do this in vanilla?
- 
--- thruster weaker?
--- increase planet dist 10x
--- slow down fuel recipies, maybe 3 chem plants per thruster?
--- fuel: carbon to solid fuel recipe, then lots of solid fuel to thruster fuel? (both a nerf, and later oil in space may be upgrade, does this affect planets?)
--- oxidizer: req iron stick (act as electrolizer electrode, req little iron but more water this would be a slow recipe)
 
 --local vulcanus_autoplace = data.raw["planet"].vulcanus.map_gen_settings.autoplace_controls
 --meld(data.raw["autoplace-control"]["tungsten_ore"], {
@@ -238,6 +128,7 @@ The developers expect you to overwrite the noise expressions on the resource pro
 
 ]]
 
+-- Foundry recipe rework (balanced for spage_machine_nerfs foundry nerf)
 data.raw["recipe"]["molten-iron-from-lava"] = nil
 data.raw["recipe"]["molten-copper-from-lava"] = nil
 data:extend({
@@ -554,6 +445,7 @@ data:extend({
 	},
 })
 
+-- Tungsten
 meld(data.raw["item"]["tungsten-ore"], {
 	stack_size = 25,
 })
@@ -581,23 +473,6 @@ meld(data.raw["recipe"]["tungsten-plate"], {
 	}),
 })
 
-meld(data.raw["recipe"]["metallurgic-science-pack"], {
-	energy_required = 36,
-	ingredients = meld.overwrite({
-		{ type = "item", name = "tungsten-carbide",      amount = 8 },
-		{ type = "item", name = "tungsten-plate",        amount = 4 },
-		{ type = "item", name = "big-electric-pole",     amount = 2 },
-		{ type = "item", name = "steam-turbine",         amount = 1 },
-		{ type = "fluid", name = "molten-copper",        amount = 400 },
-	}),
-	results = meld.overwrite({
-		{ type = "item", name = "metallurgic-science-pack", amount = 2 }
-	}),
-})
-meld(data.raw["technology"]["metallurgic-science-pack"], {
-	prerequisites = meld.append{"nuclear-power"}
-})
-
 meld(data.raw["recipe"]["holmium-plate"], {
 	energy_required = 2,
 	categories = {"crafting-with-fluid"}
@@ -620,12 +495,6 @@ meld(data.raw["recipe"]["holmium-solution"], {
 	categories = meld.append{"cryogenics"}
 })
 
-meld(data.raw["recipe"]["electromagnetic-science-pack"], {
-	energy_required = 14,
-	-- maybe kinda lame since its needed in rockets anyway, but the most thematically fitting extra ingredient I can think of
-	ingredients = meld.append{{ type = "item", name = "rocket-control-unit", amount = 1 }}
-})
-
 meld(data.raw["recipe"]["destroyer-capsule"], {
 	ingredients = meld.append{{ type = "item", name = "supercapacitor", amount = 2 }}
 })
@@ -634,11 +503,11 @@ meld(data.raw["technology"]["destroyer"], {
 })
 
 -- Make lvl 3 modules a bit more expensive
-for _,m in pairs{"speed-module-","efficiency-module-","productivity-module-","quality-module-"} do
-	meld(data.raw["recipe"][m.."3"], {
-		ingredients = myutil.overwrite_by_name{{type="item", name=m.."2", amount=5}}
-	})
-end
+--for _,m in pairs{"speed-module-","efficiency-module-","productivity-module-","quality-module-"} do
+--	meld(data.raw["recipe"][m.."3"], {
+--		ingredients = myutil.overwrite_by_name{{type="item", name=m.."2", amount=5}}
+--	})
+--end
 
 meld(data.raw["recipe"]["speed-module-3"], {
 	ingredients = myutil.overwrite_by_name{{type="item", name="speed-module-2", amount=5}}
@@ -691,3 +560,6 @@ meld(data.raw["technology"]["quality-module-3"], {
 		},
 	}
 })
+end
+
+return M

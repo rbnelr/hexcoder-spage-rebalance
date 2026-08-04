@@ -7,6 +7,5 @@ require("script/space_travel").updates()
 --require("script/hard_recipes")
 --require("script/spage_machine_nerfs")
 --require("script/space_sci").updates()
---require("script/fulgora_defense_drones").updates()
 
 require("script/custom_recycling")

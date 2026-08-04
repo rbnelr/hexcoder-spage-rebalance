@@ -1,4 +1,8 @@
 
+local M = {}
+
+function M.updates()
+
 local function set_belt_speed(belt, underground, splitter, speed)
 	meld(data.raw["transport-belt"][belt], {
 		speed = speed/2/480, -- 0.0625*480 = 30 items/sec
@@ -15,6 +19,7 @@ local function set_belt_speed(belt, underground, splitter, speed)
 end
 
 meld(data.raw["cargo-bay"]["cargo-bay"], {    inventory_size_bonus = 10 })
+meld(data.raw["cargo-bay"]["landing-pad-unloading-bay"], { inventory_size_bonus = 10 })
 meld(data.raw["container"]["wooden-chest"], { inventory_size = 10 })
 meld(data.raw["container"]["iron-chest"], {   inventory_size = 16 })
 meld(data.raw["container"]["steel-chest"], {  inventory_size = 30 })
@@ -76,7 +81,9 @@ meld(data.raw["mining-drill"]["big-mining-drill"], {
 	energy_source = {
 		emissions_per_minute = { pollution = 20.0 }, -- was 40
 	},
-	resource_drain_rate_percent = 75, -- should probably nerf quality here if I cared about quality
+	-- keep at 50% drain, even though I think 2x anything is a bit OP, it just reduces the frequency of havint to build new mining sites
+	--resource_drain_rate_percent = 75, -- should probably nerf quality here if I cared about quality
+	
 })
 meld(data.raw["resource"]["tungsten-ore"], {
 	minable = { required_fluid = "lubricant", fluid_amount = 50 }
@@ -116,7 +123,7 @@ meld(data.raw["assembling-machine"]["electromagnetic-plant"], {
 	crafting_speed = 2, -- was 2
 	effect_receiver = {
 		base_effect = {
-			productivity = 0.2 -- was 0.5
+			productivity = 0.25 -- was 0.5
 		}
 	},
 	energy_source = {
@@ -292,3 +299,7 @@ meld(data.raw["technology"]["planet-discovery-aquilo"], {
 		"advanced-carbonic-asteroid-processing"
 	}
 })
+
+end
+
+return M
