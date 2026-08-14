@@ -1,3 +1,6 @@
+local mod_name = "hexcoder-spage-rebalance-"
+local meld = require("__core__.lualib.meld")
+local myutil = require("myutil")
 
 local M = {}
 
@@ -491,8 +494,10 @@ meld(holmium_foundry, {
 	allow_productivity = true
 })
 data:extend{holmium_foundry}
+-- allow holmium solution in a machine with more prod
 meld(data.raw["recipe"]["holmium-solution"], {
-	categories = meld.append{"cryogenics"}
+	--categories = meld.append{"cryogenics"} -- cryogenic plant
+	categories = meld.append{"organic"} -- biochamber
 })
 
 meld(data.raw["recipe"]["destroyer-capsule"], {

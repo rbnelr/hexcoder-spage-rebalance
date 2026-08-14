@@ -1,3 +1,5 @@
+local mod_name = "hexcoder-spage-rebalance-"
+local meld = require("__core__.lualib.meld")
 
 local M = {}
 
@@ -10,7 +12,7 @@ function M.data()
 		{
 			type = "item",
 			name = "satellite",
-			icon = "__hexcoder-spage-rebalance__/graphics/satellite.png",
+			icon = "__hexcoder-spage-rebalance__/graphics/icons/satellite.png",
 			subgroup = "intermediate-product",
 			order = "d[rocket-parts]-eb[satellite]",
 			stack_size = 5,

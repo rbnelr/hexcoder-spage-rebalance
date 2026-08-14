@@ -1,6 +1,3 @@
-mod_name = "hexcoder-spage-rebalance-"
-meld = require("__core__.lualib.meld")
-
 --require("script/rcu").updates()
 require("script/space_travel").updates()
 --require("script/fun_promethium")

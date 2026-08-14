@@ -1,3 +1,5 @@
+local mod_name = "hexcoder-spage-rebalance-"
+local meld = require("__core__.lualib.meld")
 
 local M = {}
 
@@ -7,7 +9,7 @@ function M.data()
 		{
 			type = "item",
 			name = "rocket-control-unit",
-			icon = "__hexcoder-spage-rebalance__/graphics/rocket-control-unit.png",
+			icon = "__hexcoder-spage-rebalance__/graphics/icons/rocket-control-unit.png",
 			order = "d[rocket-parts]-c[rocket-control-unit]",
 			subgroup = "intermediate-product",
 			stack_size = 25,
@@ -26,31 +28,6 @@ function M.data()
 			energy_required = 30.0,
 			allow_productivity = true,
 			order = "d[rocket-parts]-c[rocket-control-unit]"
-		},
-		{
-			type = "technology",
-			name = "rocket-control-unit-productivity",
-			icons = util.technology_icon_constant_recipe_productivity("__hexcoder-spage-rebalance__/graphics/technology/rocket-control-unit-productivity.png"),
-			icon_size = 256,
-			effects = {{
-				type = "change-recipe-productivity",
-				recipe = "rocket-control-unit",
-				change = 0.05 -- TODO: Scale less?
-			}},
-			prerequisites = {"electromagnetic-science-pack", "production-science-pack"},
-			unit = {
-				count_formula = "1.5^L*2000",
-				ingredients = {
-					{"automation-science-pack", 1},
-					{"logistic-science-pack", 1},
-					{"chemical-science-pack", 1},
-					{"production-science-pack", 1},
-					{"electromagnetic-science-pack", 1},
-				},
-				time = 60
-			},
-			max_level = "infinite",
-			upgrade = true
 		},
 		{
 			type = "technology",
@@ -73,7 +50,32 @@ function M.data()
 			},
 			prerequisites = {"speed-module", "processing-unit"},
 			essential = true
-		}
+		},
+		{
+			type = "technology",
+			name = "rocket-control-unit-productivity",
+			icons = util.technology_icon_constant_recipe_productivity("__hexcoder-spage-rebalance__/graphics/technology/rocket-control-unit-productivity.png"),
+			icon_size = 256,
+			effects = {{
+				type = "change-recipe-productivity",
+				recipe = "rocket-control-unit",
+				change = 0.05
+			}},
+			prerequisites = {"electromagnetic-science-pack", "production-science-pack"},
+			unit = {
+				count_formula = "1.5^L*1200",
+				ingredients = {
+					{"automation-science-pack", 1},
+					{"logistic-science-pack", 1},
+					{"chemical-science-pack", 1},
+					{"production-science-pack", 1},
+					{"electromagnetic-science-pack", 1},
+				},
+				time = 60
+			},
+			max_level = "infinite",
+			upgrade = true
+		},
 	})
 end
 

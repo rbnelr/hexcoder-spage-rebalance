@@ -1,3 +1,4 @@
+local meld = require("__core__.lualib.meld")
 local myutil = {}
 
 -- good idea, but this could be better

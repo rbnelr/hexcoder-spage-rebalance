@@ -1,3 +1,6 @@
+local mod_name = "hexcoder-spage-rebalance-"
+local meld = require("__core__.lualib.meld")
+local myutil = require("myutil")
 
 local M = {}
 
@@ -32,6 +35,10 @@ for _,c in pairs({
 }) do
 	meld(data.raw["logistic-container"][c], { inventory_size = 30 })
 end
+ 
+--meld(data.raw["inserter"]["bulk-inserter"], {
+--	rotation_speed = 0.03, -- was 0.04
+--})
 
 -- numbers are double from ingame number for some reason?
 -- only (ingame) multiples of 15 can exist as whole numbers, sad
@@ -130,6 +137,13 @@ meld(data.raw["assembling-machine"]["electromagnetic-plant"], {
 		emissions_per_minute = { pollution = 2.5 }, -- was 4, now less polluting than assembler
 	},
 })
+
+meld(data.raw["assembling-machine"]["biochamber"], {
+	module_slots = 0, -- was 4
+})
+
+require("script.gleba")
+
 meld(data.raw["assembling-machine"]["cryogenic-plant"], {
 	energy_source = {
 		emissions_per_minute = { pollution = 10 }, -- was 6, now more polluting than chem plant
@@ -166,8 +180,20 @@ meld(data.raw["recipe"]["advanced-metallic-asteroid-crushing"], {
 	energy_required = 8, -- was 5
 	results = meld.overwrite{
 		{type="item", name="iron-ore", amount_min=4, amount_max=12},  -- avg 8   (100%)  - was 10 (100%)
-		{type="item", name="copper-ore", amount_min=2, amount_max=5}, -- avg 3.5 (43.7%) - was 4  ( 40%)
+		{type="item", name="copper-ore", amount_min=2, amount_max=5}, -- avg 3.5 (43.7%) - was 4   (40%)
 		{type="item", name="metallic-asteroid-chunk", amount=1, independent_probability=0.1, ignored_by_stats = 1},
+	},
+})
+meld(data.raw["recipe"]["advanced-carbonic-asteroid-crushing"], {
+	energy_required = 7, -- was 5
+	-- TODO
+})
+meld(data.raw["recipe"]["advanced-oxide-asteroid-crushing"], {
+	energy_required = 6.4, -- was 5
+	results = meld.overwrite{
+		{type="item", name="ice", amount_min=1, amount_max=4},     -- avg 2.5 (100%) - was 3 (100%)
+		{type="item", name="calcite", amount_min=0, amount_max=3}, -- avg 1.5  (60%) - was 2  (67%)
+		{type="item", name="oxide-asteroid-chunk", amount=1, independent_probability=0.1, ignored_by_stats = 1},
 	},
 })
 

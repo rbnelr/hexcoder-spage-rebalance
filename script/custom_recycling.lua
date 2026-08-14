@@ -1,3 +1,5 @@
+local mod_name = "hexcoder-spage-rebalance-"
+local meld = require("__core__.lualib.meld")
 
 ---@param recipe LuaRecipePrototype
 local function adjust_recipe(recipe)
@@ -15,14 +17,15 @@ local function adjust_recipe(recipe)
 	
 	-- original recycling logic takes into account result amount like concrete making 10
 	-- for the recycled products, but not for the speed so fix that
-	if orig_recipe and #orig_recipe.results == 1 then
-		local res = orig_recipe.results[1]
-		if res and (res.amount or (res.amount_min and res.amount_max)) then
-			-- multiplier original formula uses for recycling results, but not for energy_required
-			local multiplier = res.amount or res.amount_min
-			recipe.energy_required = recipe.energy_required / multiplier
-		end
-	end
+	-- Now fixed in 2.1.13, don't do this as this makes it even faster!
+	--if orig_recipe and #orig_recipe.results == 1 then
+	--	local res = orig_recipe.results[1]
+	--	if res and (res.amount or (res.amount_min and res.amount_max)) then
+	--		-- multiplier original formula uses for recycling results, but not for energy_required
+	--		local multiplier = res.amount or res.amount_min
+	--		recipe.energy_required = recipe.energy_required / multiplier
+	--	end
+	--end
 	
 	-- nerf fast recipes, including the self recycling ones at 0.5/16  (0.03 -> 0.1, so about 3x nerf)
 	if recipe.energy_required < 0.1 then

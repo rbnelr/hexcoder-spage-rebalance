@@ -1,4 +1,4 @@
-mod_name = "hexcoder-spage-rebalance-"
+local mod_name = "hexcoder-spage-rebalance-"
 
 data:extend({
 	{

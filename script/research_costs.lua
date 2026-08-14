@@ -1,3 +1,6 @@
+local mod_name = "hexcoder-spage-rebalance-"
+local meld = require("__core__.lualib.meld")
+
 local M = {}
 
 function M.final_fixes()
@@ -122,15 +125,15 @@ function M.final_fixes()
 	
 	-- nerf infinite resource processing productivity research, but keep mining prod
 	--TODO: analyze and nerf robot speed
-	local bonuses = {
+	local inf_bonuses = {
 		["carbonic-asteroid-crushing"] = 0.05,
 		["oxide-asteroid-crushing"] = 0.05,
 		["metallic-asteroid-crushing"] = 0.05,
 		["advanced-carbonic-asteroid-crushing"] = 0.05,
 		["advanced-oxide-asteroid-crushing"] = 0.05,
 		["advanced-metallic-asteroid-crushing"] = 0.05,
+		["scrap-recycling"] = 0.05,
 		["processing-unit"] = 0.05,
-		--"scrap-recycling"
 		["steel-plate"] = 0.05,
 		["casting-steel"] = 0.05,
 		["low-density-structure"] = 0.05,
@@ -145,9 +148,20 @@ function M.final_fixes()
 
 		-- keep mining prod, scrap prod, and damage the same
 	}
+	local inf_scl = 4/3
+	local inf_costs = { -- all were "1.5^L*1000"
+		-- 1.225^L scales less than 1.5^L, but with halved prod bonus, to get the same prod 1.225^2L=1.5^L almost exactly matches
+		-- I still want it to scale more, so things like 300% prod are impossible, but not that much more
+		-- (1.33334^L*2)/(1.5^L) is a 8.4x at Lvl10, 45x at Lvl20, 250x at Lvl30
+		["steel-plate-unit-productivity"] = inf_scl.."^L*2000",
+		["plastic-bar-productivity"] = inf_scl.."^L*2000",
+		["rocket-fuel-productivity"] = inf_scl.."^L*2000",
+		["low-density-structure-productivity"] = inf_scl.."^L*2000",
+		["processing-unit-productivity"] = inf_scl.."^L*2000",
+	}
 	
 	-- set all multipliers
-	for k,v in pairs(data.raw["technology"]) do
+	for name,v in pairs(data.raw["technology"]) do
 		if v.unit ~= nil and v.unit.ingredients ~= nil then
 			local bottles = #v.unit.ingredients
 			local mult = multipliers[bottles <= #multipliers and bottles or #multipliers]
@@ -156,6 +170,8 @@ function M.final_fixes()
 				v.unit.count = math.max(1, v.unit.count * mult)
 			elseif v.unit.count_formula ~= nil then
 				local formula = v.unit.count_formula
+				
+				if inf_costs[name] then formula = inf_costs[name] end
 				
 				if formula:match("(^%s*%d+%.?%d*%s*$)") then
 					formula = tostring(tonumber(formula) * mult)
@@ -178,7 +194,7 @@ function M.final_fixes()
 			
 			for _,eff in pairs(v.effects or {}) do
 				if eff.type == "change-recipe-productivity" then
-					local bonus = bonuses[eff.recipe]
+					local bonus = inf_bonuses[eff.recipe]
 					if bonus ~= nil and eff.change ~= nil then
 						eff.change = bonus
 					end
