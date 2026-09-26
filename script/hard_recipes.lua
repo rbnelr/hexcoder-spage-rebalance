@@ -507,27 +507,29 @@ meld(data.raw["technology"]["destroyer"], {
 	prerequisites = meld.append{"electromagnetic-plant"}
 })
 
--- Make lvl 3 modules a bit more expensive
---for _,m in pairs{"speed-module-","efficiency-module-","productivity-module-","quality-module-"} do
---	meld(data.raw["recipe"][m.."3"], {
---		ingredients = myutil.overwrite_by_name{{type="item", name=m.."2", amount=5}}
---	})
---end
 
+-- Make lvl 3 modules a bit more expensive
 meld(data.raw["recipe"]["speed-module-3"], {
-	ingredients = myutil.overwrite_by_name{{type="item", name="speed-module-2", amount=5}}
+	ingredients = meld.overwrite{
+		{type="item", name="advanced-circuit", amount=5},
+		{type="item", name="processing-unit", amount=5},
+		{type="item", name="tungsten-carbide", amount=10}, -- 10!
+		{type="item", name="speed-module-2", amount=5}, -- 4->5 lvl2
+	}
 })
 meld(data.raw["recipe"]["productivity-module-3"], {
-	ingredients = myutil.overwrite_by_name{{type="item", name="productivity-module-2", amount=5}}
+	ingredients = meld.overwrite{
+		{type="item", name="advanced-circuit", amount=5},
+		{type="item", name="processing-unit", amount=5},
+		{type="item", name="biter-egg", amount=1}, -- keep at 1
+		{type="item", name="productivity-module-2", amount=5},
+	}
 })
-
--- Eff 3 on fulgora with supercond
--- Quality 3 on ?
 meld(data.raw["recipe"]["efficiency-module-3"], {
 	ingredients = meld.overwrite{
 		{type="item", name="advanced-circuit", amount=5},
 		{type="item", name="processing-unit", amount=5},
-		{type="item", name="superconductor", amount=2},
+		{type="item", name="superconductor", amount=10},
 		{type="item", name="efficiency-module-2", amount=5},
 	}
 })
@@ -535,7 +537,7 @@ meld(data.raw["recipe"]["quality-module-3"], {
 	ingredients = meld.overwrite{
 		{type="item", name="advanced-circuit", amount=5},
 		{type="item", name="processing-unit", amount=5},
-		{type="item", name="quantum-processor", amount=1},
+		{type="item", name="quantum-processor", amount=10},
 		{type="item", name="quality-module-2", amount=5},
 	}
 })

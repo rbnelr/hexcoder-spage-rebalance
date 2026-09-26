@@ -93,7 +93,19 @@ meld(data.raw["mining-drill"]["big-mining-drill"], {
 	
 })
 meld(data.raw["resource"]["tungsten-ore"], {
-	minable = { required_fluid = "lubricant", fluid_amount = 50 }
+	minable = { required_fluid = "lubricant", fluid_amount = 120 }
+})
+meld(data.raw["resource"]["scrap"], {
+	minable = {
+		mining_time = 1.4, -- was 0.5
+		result = meld.delete(),
+		results = {{
+			type="item", -- avg 2.5 in 1.4 sec = 1.78/s instead of 2
+			name = "scrap",
+			amount_min = 1,
+			amount_max = 4,
+		}}
+	}
 })
 -- mining with fluid actually needs to be unlocked
 -- so either need to unlock mining with fluid with this tech like tungsten_mining_require_lube mod
@@ -142,26 +154,37 @@ meld(data.raw["assembling-machine"]["biochamber"], {
 	module_slots = 0, -- was 4
 })
 
-require("script.gleba")
-
 meld(data.raw["assembling-machine"]["cryogenic-plant"], {
 	energy_source = {
 		emissions_per_minute = { pollution = 10 }, -- was 6, now more polluting than chem plant
 	},
 })
 
+local NAUVIS_CHUNKS = 0.05*2.2 -- was 0.05, had *4
+local NAUVIS_CHUNKS_SPEED = 0.0266667*1.4
+local NAUVIS_SMALL = 0.05*0.7
+local NAUVIS_SMALL_SPEED = 0.0266667*0.9
 
 -- buff the trickle of asteroids around nauvis to make stationary platforms more viable
 meld(data.raw["planet"]["nauvis"], {
-	asteroid_spawn_definitions = meld.invoke(function(list)
-		for _,def in pairs(list) do
-			def.probability = def.probability * 4
-			def.speed = def.speed * 1.6
-		end
-		return list
-	end)
+	--asteroid_spawn_definitions = meld.invoke(function(list)
+	--	for _,def in pairs(list) do
+	--		def.probability = def.probability * 4
+	--		def.speed = def.speed * 1.6
+	--	end
+	--	return list
+	--end)
+	asteroid_spawn_definitions = meld.overwrite{
+		{ type="asteroid-chunk", asteroid="metallic-asteroid-chunk", probability=NAUVIS_CHUNKS, speed=NAUVIS_CHUNKS_SPEED, angle_when_stopped=1 },
+		{ type="asteroid-chunk", asteroid="carbonic-asteroid-chunk", probability=NAUVIS_CHUNKS, speed=NAUVIS_CHUNKS_SPEED, angle_when_stopped=1 },
+		{ type="asteroid-chunk", asteroid="oxide-asteroid-chunk"   , probability=NAUVIS_CHUNKS, speed=NAUVIS_CHUNKS_SPEED, angle_when_stopped=1 },
+		{ type="entity", asteroid="small-metallic-asteroid", probability=NAUVIS_SMALL, speed=NAUVIS_SMALL_SPEED, angle_when_stopped=1 },
+		{ type="entity", asteroid="small-carbonic-asteroid", probability=NAUVIS_SMALL, speed=NAUVIS_SMALL_SPEED, angle_when_stopped=1 },
+		{ type="entity", asteroid="small-oxide-asteroid"   , probability=NAUVIS_SMALL, speed=NAUVIS_SMALL_SPEED, angle_when_stopped=1 },
+	}
 })
-
+-- TODO: adjust other planets?
+-- esp. aquilo
 
 meld(data.raw["recipe"]["metallic-asteroid-crushing"], {
 	energy_required = 4, -- was 2

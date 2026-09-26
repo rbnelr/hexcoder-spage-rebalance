@@ -1,0 +1,52 @@
+
+red:
+ 1 copper, 1 gear
+ = 1 copper, 2 iron
+->
+ 3 cable, 1 burner inserter (1 gear, 1 iron)
+ = 2.25 copper, 2.5 iron
+ 
+green:
+ 1 inserter, 1 belt = 1.5 copper, 5.5 iron
+->
+ 2 belt, 1 long inserter
+ = 2.2 copper, 8.5 iron
+
+blue:
+ 15 copper, 2 eng, 6 iron, 6 plastic, 1 sulfur (=2)
+ = 7.5 copper, 12 iron, 3 plastic, .5 sulfur
+->
+ 3 bat, 4 red circ, 3 pump (=2)
+ 1.5 * (steel, eng, pipe), ~3 sulfur
+
+(make sure to remember to check if pollution scales correctly with adjustments)
+Foundry:
+ 3 modules, base prod 0%!!, crafting speed 3 ?
+EM plant:
+ 4 modules, 15% (20?) base prod, craftig speed 1.75 ?
+cryo plant:
+ 8 modules interesting, but might be OP, crafting speed 1 ?
+biochamber:
+ no modules ?, 50% base prod?, crafting speed 1.25?
+ 
+ give foundry, em plant and cryo plant something like -25% base pollution ?
+ 
+ideas: rename RCU and make it a science ingredient on fulgora? -> signal processor
+
+nerf turret turn rate to make it less OP with high damage research and worse at killing for example drones
+laser turret gets to turn faster
+ 
+ 
+split advanced asteroid processing into 3 techs:
+ -metallic (copper) on vulcanus: can make red ammo (better dps but slow ship)
+ -oxide (calcite) on fulgora: can drop calcite to nauvis, can use better oxidizer recipe (which might output a little liquid fuel just for fun (hydrogen?), possibly add 3rd recipe that takes copper electrode (plate?) so there are more upgrades?)
+ -carbon (sulfur -> coal): can make rockets in space, can use better thruster fuel recipe (carbon -> solid fuel -> thruster fuel, no calcite use?), coal liquefaction might be 3rd recipe (either to make solid fuel or simply straight up light oil -> thruster fuel?)
+ 
+carbon -> solid fuel should be less efficient than oil if starting with crude
+carbon + sulfur -> coal -> oil -> solid fuel should probably not be overpowered, but if prod pushes it into more efficient than direct that's interesting
+in other words avoid carbon -> solid fuel making other forms of rocket fuel production useless
+
+look at energy values:
+ carbon -> thruster fuel (X fluid / MJ of fuel)
+ carbon + sulfur -> solid fuel (less or more MJ?) -> thruster fuel (more fluid / MJ, or if more MJ
+ 
