@@ -75,6 +75,11 @@ meld(data.raw["assembling-machine"]["chemical-plant"], {
 	module_slots = 2
 })
 
+meld(data.raw["assembling-machine"]["centrifuge"], {
+	module_slots = 3,
+	energy_usage = "875kW",
+})
+
 meld(data.raw["mining-drill"]["electric-mining-drill"], {
 	module_slots = 2
 })
@@ -95,18 +100,23 @@ meld(data.raw["mining-drill"]["big-mining-drill"], {
 meld(data.raw["resource"]["tungsten-ore"], {
 	minable = { required_fluid = "lubricant", fluid_amount = 120 }
 })
-meld(data.raw["resource"]["scrap"], {
-	minable = {
-		mining_time = 1.4, -- was 0.5
-		result = meld.delete(),
-		results = {{
-			type="item", -- avg 2.5 in 1.4 sec = 1.78/s instead of 2
-			name = "scrap",
-			amount_min = 1,
-			amount_max = 4,
-		}}
-	}
-})
+--meld(data.raw["resource"]["scrap"], {
+--	minable = {
+--		mining_time = 1.4, -- was 0.5
+--		-- oops this of course multiplies total scrap amount from patch
+--		-- we should probably adjust richness of mapgen (autoplace richness expression)
+--		-- it's also a bit confusing, but hovering over in map view actually accounts for this
+--		-- but my fulgora mod did not
+--		result = meld.delete(),
+--		results = {{
+--			type="item", -- avg 2.5 in 1.4 sec = 1.78/s instead of 2
+--			name = "scrap",
+--			amount_min = 1,
+--			amount_max = 4,
+--		}}
+--	}
+--}) -- TODO: adjust noise expression
+
 -- mining with fluid actually needs to be unlocked
 -- so either need to unlock mining with fluid with this tech like tungsten_mining_require_lube mod
 -- or put the drill behind the uranium mining tech, which actually just unlocks this, so I'll rename it as I think this makes a lot more sense
@@ -151,7 +161,12 @@ meld(data.raw["assembling-machine"]["electromagnetic-plant"], {
 })
 
 meld(data.raw["assembling-machine"]["biochamber"], {
-	module_slots = 0, -- was 4
+	module_slots = 2, -- was 4
+	effect_receiver = {
+		--uses_module_effects = false,
+		uses_beacon_effects = true,
+	},
+	allowed_effects = {"speed", "productivity", "pollution", "quality"} -- no "consumption"
 })
 
 meld(data.raw["assembling-machine"]["cryogenic-plant"], {
@@ -187,12 +202,12 @@ meld(data.raw["planet"]["nauvis"], {
 -- esp. aquilo
 
 meld(data.raw["recipe"]["metallic-asteroid-crushing"], {
-	energy_required = 4, -- was 2
-	results = myutil.overwrite_by_name{{type="item", name="iron-ore", amount_min=8, amount_max=24}}, -- avg 16 was 20
+	energy_required = 10/3, -- 3.333334 was 2
+	results = myutil.overwrite_by_name{{type="item", name="iron-ore", amount_min=7, amount_max=24}}, -- avg 15 was 20
 })
 meld(data.raw["recipe"]["carbonic-asteroid-crushing"], {
-	energy_required = 3.5, -- was 2
-	results = myutil.overwrite_by_name{{type="item", name="carbon", amount_min=6, amount_max=12}}, -- was 10
+	energy_required = 3.1, -- was 2
+	results = myutil.overwrite_by_name{{type="item", name="carbon", amount_min=6, amount_max=12}}, -- avg 9 was 10
 })
 meld(data.raw["recipe"]["oxide-asteroid-crushing"], {
 	energy_required = 3.2, -- was 2
@@ -200,7 +215,7 @@ meld(data.raw["recipe"]["oxide-asteroid-crushing"], {
 })
 
 meld(data.raw["recipe"]["advanced-metallic-asteroid-crushing"], {
-	energy_required = 8, -- was 5
+	energy_required = 7.25, -- was 5
 	results = meld.overwrite{
 		{type="item", name="iron-ore", amount_min=4, amount_max=12},  -- avg 8   (100%)  - was 10 (100%)
 		{type="item", name="copper-ore", amount_min=2, amount_max=5}, -- avg 3.5 (43.7%) - was 4   (40%)
@@ -208,14 +223,18 @@ meld(data.raw["recipe"]["advanced-metallic-asteroid-crushing"], {
 	},
 })
 meld(data.raw["recipe"]["advanced-carbonic-asteroid-crushing"], {
-	energy_required = 7, -- was 5
-	-- TODO
+	energy_required = 6.25, -- was 5
+	results = meld.overwrite{
+		{type="item", name="carbon", amount_min=3, amount_max=5}, -- avg 4   (100%)  - was 5 (100%)
+		{type="item", name="sulfur", amount_min=1, amount_max=2}, -- avg 1.5 (37.5%) - was 2  (40%)
+		{type="item", name="metallic-asteroid-chunk", amount=1, independent_probability=0.1, ignored_by_stats = 1},
+	},
 })
 meld(data.raw["recipe"]["advanced-oxide-asteroid-crushing"], {
 	energy_required = 6.4, -- was 5
 	results = meld.overwrite{
 		{type="item", name="ice", amount_min=1, amount_max=4},     -- avg 2.5 (100%) - was 3 (100%)
-		{type="item", name="calcite", amount_min=0, amount_max=3}, -- avg 1.5  (60%) - was 2  (67%)
+		{type="item", name="calcite", amount_min=0, amount_max=2}, -- avg 1.0  (40%) - was 2  (67%)
 		{type="item", name="oxide-asteroid-chunk", amount=1, independent_probability=0.1, ignored_by_stats = 1},
 	},
 })
@@ -227,7 +246,7 @@ meld(data.raw["recipe"]["thruster-fuel"], {
 		{type="fluid", name="water", amount=10}, -- was 10
 	}),
 	results = meld.overwrite({
-		{type="fluid", name="thruster-fuel", amount=150}, -- was 75
+		{type="fluid", name="thruster-fuel", amount=125}, -- was 75
 	}),
 	localised_description = "A inefficient method to produce hydrocarbon fuel."
 })
@@ -238,21 +257,41 @@ meld(data.raw["recipe"]["thruster-oxidizer"], {
 		{type="fluid", name="water", amount=45}, -- was 10
 	}),
 	results = meld.overwrite({
-		{type="fluid", name="thruster-oxidizer", amount=150}, -- was 75
+		{type="fluid", name="thruster-oxidizer", amount=100}, -- was 75
 	}),
 	localised_description = "Electrolysis of water using iron electrodes.\nLiquid oxygen is captured but all hydrogen leaks away."
 })
--- TODO: custom icon
-meld(data.raw["recipe"]["advanced-thruster-oxidizer"], {
-	energy_required = 12,
+-- carbon->coal->liquefaction->cracking->light oil + petro gas is about 10carbon->10fluid (5+5)
+-- but carbon+sulfur is gets less carbon than just carbon
+-- 1 solid-fuel = 10 light oil
+-- for 10+10 fluid maybe around 25 (?) water needed
+-- TODO: add ammonia thruster fuel recipe?
+-- TODO: this sadly depends on coal liquefaction or simple coal liquefaction, soe is behind vulcanus, unlock on gleba too?
+meld(data.raw["recipe"]["advanced-thruster-fuel"], {
+	energy_required = 4,
 	ingredients = meld.overwrite({
-		{type="item", name="copper-plate", amount=2},
-		{type="item", name="iron-stick", amount=1},
-		{type="fluid", name="water", amount=220}, -- was 100
+		{type="item", name="solid-fuel", amount=1}, -- 10 light oil
+		{type="fluid", name="petroleum-gas", amount=8},
 	}),
 	results = meld.overwrite({
-		{type="fluid", name="thruster-oxidizer", amount=1500}, -- was 1500
-		{type="fluid", name="thruster-fuel", amount=120},
+		{type="fluid", name="thruster-fuel", amount=500}, -- 4x may be fair with all the oil processing involved
+		-- consider refunding water or steam here?
+	}),
+	localised_description = "" -- TODO:
+})
+-- TODO: custom icon
+-- more efficient water use but slower?
+meld(data.raw["recipe"]["advanced-thruster-oxidizer"], {
+	energy_required = 18,
+	categories = {"chemistry", "cryogenics"},
+	ingredients = meld.overwrite({
+		{type="item", name="copper-plate", amount=6},
+		{type="item", name="iron-stick", amount=6},
+		{type="fluid", name="water", amount=252}, -- 45*6=270 -> cheaper
+	}),
+	results = meld.overwrite({
+		{type="fluid", name="thruster-oxidizer", amount=600}, -- was 1500
+		{type="fluid", name="thruster-fuel", amount_min=50, amount_max=70},
 	}),
 	localised_description = "Electrolysis of water using copper-wrapped electrodes.\nLiquid oxygen is captured but most hydrogen leaks away."
 })
@@ -316,6 +355,7 @@ data:extend({
 		icon_size = 256,
 		effects = {
 			{type = "unlock-recipe", recipe = "advanced-carbonic-asteroid-crushing"},
+			{type = "unlock-recipe", recipe = "advanced-thruster-fuel"} -- needs coal liquefaction, but could still launch barrels and solid fuel?
 		},
 		prerequisites = {"production-science-pack", "utility-science-pack", "agricultural-science-pack"},
 		unit = {

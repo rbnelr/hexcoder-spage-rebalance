@@ -34,4 +34,25 @@ function myutil.delete_recipe_by_name(values)
 	end)
 end
 
+-- append value if not already exist
+-- ex. use instead of meld.append in tech prerequisites, if values could already exist
+---@param values string[]
+function myutil.meld_append_unique(values)
+	local meld = require("__core__.lualib.meld")
+	return { marker = meld.control_marker, op = "append_unique", data = values }
+end
+meld.control_handlers.append_unique = function(target, k, v)
+	local list = target[k] or {}
+	local existing_values = {}
+	for _, value in pairs(list) do
+		table.insert(existing_values, value)
+	end
+	for _, value in pairs(v.data) do
+		if existing_values[value] == nil then
+			table.insert(list, util.copy(value))
+		end
+	end
+	target[k] = list
+end
+
 return myutil

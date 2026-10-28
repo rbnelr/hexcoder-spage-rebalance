@@ -76,10 +76,12 @@ function M.updates()
 
 	data.raw["space-connection"]["aquilo-solar-system-edge"].length = math.floor(
 		data.raw["space-connection"]["aquilo-solar-system-edge"].length * dist_mult3)
-
+	
+	-- what determines thrust? fuel value of fluids?
+	-- (effectivity of at min/max_performance seemingly is meant to go up to 100%)
 	meld(data.raw["thruster"]["thruster"], {
-		min_performance = { fluid_usage = 0.15 }, -- was .1
-		max_performance = { fluid_usage = 2.666666667 }, -- was 2
+		min_performance = { fluid_volume = 0.05, fluid_usage = 6/60, effectivity=1 }, -- fluid_usage was .1 (6/s)
+		max_performance = { fluid_volume = 0.9, fluid_usage = 250/60, effectivity=0.55 }, -- fluid_usage was 2 (120/s)
 	})
 end
 return M

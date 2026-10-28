@@ -21,11 +21,12 @@ function M.data()
 			enabled = false,
 			ingredients = {
 				{type="item", name="processing-unit", amount=1},
-				{type="item", name="speed-module", amount=1}
+				{type="item", name="speed-module", amount=1},
+				{type="item", name="battery", amount=1},
 			},
 			results = {{type="item", name="rocket-control-unit", amount=1}},
 			categories = { "crafting", "electromagnetics" },
-			energy_required = 30.0,
+			energy_required = 32.0,
 			allow_productivity = true,
 			order = "d[rocket-parts]-c[rocket-control-unit]"
 		},
@@ -48,7 +49,7 @@ function M.data()
 				},
 				time = 45
 			},
-			prerequisites = {"speed-module", "processing-unit"},
+			prerequisites = {"speed-module", "processing-unit", "battery"},
 			essential = true
 		},
 		{

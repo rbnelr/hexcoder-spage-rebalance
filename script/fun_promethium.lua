@@ -39,18 +39,32 @@ meld(data.raw["capsule"]["raw-fish"], {
 -- of course long platforms with a million cargo bays defeat this if you can afford the rocket launches
 meld(data.raw["recipe"]["quantum-processor"], {
 	energy_required = 42,
+	--ingredients = meld.overwrite({
+	--	{type = "item", name = "tungsten-carbide", amount = 1}, -- 50/500
+	--	{type = "item", name = "processing-unit", amount = 3},  -- 40/160
+	--	{type = "item", name = "superconductor", amount = 4},   -- 200/1000
+	--	{type = "item", name = "carbon-fiber", amount = 1},     -- 100/500
+	--	{type = "item", name = "lithium-plate", amount = 1},    -- 100/500
+	--	{type = "fluid", name = "fluoroketone-cold", amount = 15, ignored_by_stats = 14}, -- 10/100 (barrel) -> 50/500 (fluid)
+	--	{type = "fluid", name = "light-oil", amount = 12},                                -- 10/100 (barrel) -> 50/500 (fluid)
+	--	--{type = "fluid", name = "lubricant", amount = 4}, -- Can't have 3 inputs for some reason
+	--}),
+	--results = meld.overwrite({
+	--	{type = "item", name = "quantum-processor", amount = 1}, -- 10/62
+	--	{type = "fluid", name = "fluoroketone-hot", amount = 14, temperature = 180, ignored_by_stats = 14, ignored_by_productivity = 14}
+	--}),
 	ingredients = meld.overwrite({
-		{type = "item", name = "tungsten-carbide", amount = 1}, -- 50/500
-		{type = "item", name = "processing-unit", amount = 3},  -- 40/160
-		{type = "item", name = "superconductor", amount = 4},   -- 200/1000
-		{type = "item", name = "carbon-fiber", amount = 1},     -- 100/500
-		{type = "item", name = "lithium-plate", amount = 1},    -- 100/500
-		{type = "fluid", name = "fluoroketone-cold", amount = 15, ignored_by_stats = 14}, -- 10/100 (barrel) -> 50/500 (fluid)
-		{type = "fluid", name = "light-oil", amount = 12},                                -- 10/100 (barrel) -> 50/500 (fluid)
-		--{type = "fluid", name = "lubricant", amount = 4}, -- Can't have 3 inputs for some reason
+		{type = "item", name = "uranium-235", amount = 5},
+		{type = "item", name = "tungsten-carbide", amount = 8},
+		{type = "item", name = "processing-unit", amount = 10}, -- quality? maybe 2 rares or similar? how would quality QP work then?
+		{type = "item", name = "superconductor", amount = 8},
+		{type = "item", name = "carbon-fiber", amount = 6},
+		{type = "item", name = "lithium-plate", amount = 6},
+		{type = "fluid", name = "fluoroketone-cold", amount = 15, ignored_by_stats = 14},
+		{type = "fluid", name = "light-oil", amount = 25},
 	}),
 	results = meld.overwrite({
-		{type = "item", name = "quantum-processor", amount = 1}, -- 10/62
+		{type = "item", name = "quantum-processor", amount = 1, independent_probability=0.72},
 		{type = "fluid", name = "fluoroketone-hot", amount = 14, temperature = 180, ignored_by_stats = 14, ignored_by_productivity = 14}
 	}),
 })

@@ -6,6 +6,10 @@ local M = {}
 
 function M.updates()
 
+meld(data.raw["offshore-pump"]["offshore-pump"], {
+	pumping_speed = 10, -- was 20 -> 1200/s -> 600/s
+})
+
 -- More expensive basic resources
 meld(data.raw["recipe"]["iron-gear-wheel"], {
 	energy_required = 1.5,
@@ -76,6 +80,15 @@ meld(data.raw["recipe"]["electric-engine-unit"], {
 	}),
 	results = meld.overwrite({
 		{ type = "item", name = "electric-engine-unit", amount = 2 },
+	}),
+})
+
+-- explosives take petroleum, requiring oil production in space and potentially on gleba
+meld(data.raw["recipe"]["explosives"], {
+	ingredients = meld.overwrite({
+		{ type = "item", name = "coal", amount = 1 },
+		{ type = "item", name = "sulfur", amount = 2 }, -- was 1
+		{ type = "fluid", name = "petroleum-gas", amount = 12 }, -- was 10 water
 	}),
 })
 
@@ -500,12 +513,12 @@ meld(data.raw["recipe"]["holmium-solution"], {
 	categories = meld.append{"organic"} -- biochamber
 })
 
-meld(data.raw["recipe"]["destroyer-capsule"], {
-	ingredients = meld.append{{ type = "item", name = "supercapacitor", amount = 2 }}
-})
-meld(data.raw["technology"]["destroyer"], {
-	prerequisites = meld.append{"electromagnetic-plant"}
-})
+--meld(data.raw["recipe"]["destroyer-capsule"], {
+--	ingredients = meld.append{{ type = "item", name = "supercapacitor", amount = 2 }}
+--})
+--meld(data.raw["technology"]["destroyer"], {
+--	prerequisites = myutil.meld_append_unique{"electromagnetic-plant"}
+--})
 
 
 -- Make lvl 3 modules a bit more expensive
