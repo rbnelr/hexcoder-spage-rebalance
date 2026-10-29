@@ -2,3 +2,5 @@
 *.xcf
 CLAUDE.md
 .claude/
+*.md
+tools/**

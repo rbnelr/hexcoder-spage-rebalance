@@ -5,7 +5,7 @@ local common = require("prototypes/common")
 local M = {}
 
 function M.data()
-	-- Make lvl 3 modules a bit more expensive
+	-- Make lvl 3 modules a bit more expensive (they actually used to cost 5 module-2)
 	meld(data.raw["recipe"]["speed-module-3"], {
 		ingredients = meld.overwrite{
 			{type="item", name="advanced-circuit", amount=5},

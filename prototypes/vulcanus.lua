@@ -12,6 +12,7 @@ local function lava()
 	data.raw["recipe"]["molten-copper-from-lava"] = nil
 
 	data:extend({
+		-- Forced fixed ration fluids!
 		{
 			type = "recipe",
 			name = "molten-metal-from-lava",
@@ -24,16 +25,21 @@ local function lava()
 			enabled = false,
 			energy_required = 30,
 			ingredients = {
-				{type = "fluid", name = "lava", amount = 1000},
-				{type = "item", name = "calcite", amount = 2},
+				{type = "fluid", name = "lava", amount = 1000}, -- was 500
+				{type = "item", name = "calcite", amount = 2}, -- was 2
 			},
 			results = {
-				{type = "fluid", name = "molten-iron", amount_min = 100, amount_max = 400},
-				{type = "fluid", name = "molten-copper", amount_min = 100, amount_max = 300},
-				{type = "item", name = "stone", amount = 23},
+				{type = "fluid", name = "molten-iron", amount_min = 100, amount_max = 400}, -- avg 250 was 250
+				{type = "fluid", name = "molten-copper", amount_min = 100, amount_max = 300}, -- avg 200 was 250
+				{type = "item", name = "stone", amount_min = 20, amount_max = 50}, -- avg 35, was 15 (~30 for iron and copper)
 			},
 			allow_productivity = true
 		},
+		-- dealing with fixed ratio fluids is interesting, and generating stone is already possible
+		-- however voiding molten metal in vanilla is lame, with throwing steel bars or whatever into laval
+		-- instead add en explicit solidify recipe that makes ore in exchange for water
+		-- looks cooler to void and also lets us make concrete before unlocking conrete casting
+		
 		-- with basegame 300% prod limit (1 ore -> 40 liquid metal), there is the danger if allowing infinite metal generation via a loop
 		-- so don't allow prod here and pick numbers carefully
 		-- can be abused to turn iron into stone. Does that matter? If so just remove stone output
@@ -151,7 +157,7 @@ local function casting()
 		allow_productivity = false, -- was true
 	})
 	meld(data.raw["recipe"]["casting-iron-stick"], {
-		-- 1/2: 0.5, 0.38, 0.32, 0.28 (1.3/5), unprodded 78% better
+		-- 1/2: 0.5, 0.38, 0.32, 0.28 (1.4/5), unprodded 78% better
 		energy_required = 2, -- was 1
 		ingredients = meld.overwrite{
 			{ type = "fluid", name = "molten-iron", amount = 14 }, -- was 20
@@ -163,7 +169,8 @@ local function casting()
 	})
 	meld(data.raw["recipe"]["casting-copper-cable"], {
 		-- 3/4: 0.75, 0.58, 0.48, 0.375 (1.5/4), unprodded 100% better
-		-- EM plant gets up to 60% prod, so adjust this again from 13->3 in 1.5 to 15->4 
+		-- EM plant gets up to 65% prod (25% base + 4 modules), so adjust this again from 13->3 in 1.5 to 15->4
+		--   cast plates + EM plant 65%: 0.75 * 0.833 / 1.65 = 0.379, about equal to direct casting
 		energy_required = 2, -- was 1
 		ingredients = meld.overwrite{
 			{ type = "fluid", name = "molten-copper", amount = 15 }, -- was 5
@@ -174,7 +181,7 @@ local function casting()
 		allow_productivity = false, -- was true
 	})
 	meld(data.raw["recipe"]["casting-pipe"], {
-		-- 1/1: 1, 0.77, 0.64, 0.76 (3.8/5), unprodded 32% better, but worse than plate casting + prodded assembler
+		-- 1/1: 1, 1, 0.83, 0.76 (3.8/5), unprodded 32% better, pipe has no prod so direct casting stays 9% better than plate casting + assembler
 		energy_required = 5, -- was 1
 		ingredients = meld.overwrite{
 			{ type = "fluid", name = "molten-iron", amount = 38 }, -- was 10
@@ -196,7 +203,7 @@ local function casting()
 		allow_productivity = false,
 	})
 	meld(data.raw["recipe"]["casting-steel"], {
-		-- 6/1: 6, 5, 4.16, 3.75, unprodded 60% better, prodded 108% better
+		-- 6/1: 6, 5, 4.16, 3.75 (+1/6 carbon), unprodded 60% better, prodded 108% better (iron only)
 		energy_required = 20, -- was 3.2
 		ingredients = meld.overwrite{
 			{ type = "item", name = "carbon", amount = 1 }, -- new
@@ -210,14 +217,21 @@ local function casting()
 	meld(data.raw["recipe"]["casting-low-density-structure"], {
 		-- for some wierd reason, in vanilla the LDS casting recipe has a higher copper cost than the assembler
 		-- though it is negated by the free 50% prod
+		-- LDS (Assembler): 20 Copper + 2 Steel + 5 Bar = 1
+		-- can cast 2 steel for ~60 iron if prodded
+		-- can cast 20 copper plate for ~166 copper
+		-- need to be cheaper to compete
+		-- direct vs cast plates + cast steel + assembler (Nauvis oil and sulfur): no modules 31.8 vs 40.5, prod 3 18.9 vs 22.4
 		energy_required = 15,
 		ingredients = meld.overwrite{
-			{ type = "item", name = "plastic-bar", amount = 5 },
-			{ type = "fluid", name = "molten-copper", amount = 165 }, -- was 250
-			{ type = "fluid", name = "molten-iron", amount = 80 },
+			{ type = "item", name = "plastic-bar", amount = 4 }, -- was 5
+			{ type = "fluid", name = "molten-copper", amount = 150 }, -- was 250
+			{ type = "fluid", name = "molten-iron", amount = 55 }, -- was 80
 		},
+		main_product = "low-density-structure",
 		results = meld.overwrite{
-			{ type = "item", name = "low-density-structure", amount = 1 },
+			{ type = "item", name = "low-density-structure", amount = 1, shared_probability={min=0,max=0.8} },
+			{ type = "item", name = "plastic-bar", amount_min = 2, amount_max = 5, shared_probability={min=0.8,max=1} },
 		},
 		allow_productivity = true,
 	})
@@ -360,9 +374,9 @@ end
 
 ---- Metallurgic science (hard science setting)
 local function science()
-	-- raw cost per pack 31.8 -> 183 (5.8x), casting everything on vulcanus, molten metal and sulfuric acid counted as raw (10 = 1 ore),
-	--   foundry base prod 50% -> 0%: molten iron 8.9 -> 915 (steam turbine, big poles, steel in tungsten plate), molten copper 133 -> 423,
-	--   tungsten ore 7.6 -> 16, sulfuric acid 60 -> 157
+	-- raw cost per pack 27.0 -> 177.5 (6.6x), casting everything on vulcanus, molten metal from ore melting, sulfuric acid raw, calcite free
+	-- late (prod 3) 14.9 -> 93.5 (6.3x), legendary prod 3 7.8 -> 46.6 (6.0x); see tools/planet_costs.py
+	--   per pack (no modules): steam turbine 62.8, tungsten plate 40.9 (13.3 of it steel), carbide 28, big pole 25.8, molten copper 20
 	meld(data.raw["recipe"]["metallurgic-science-pack"], {
 		energy_required = 36, -- was 10
 		ingredients = meld.overwrite{

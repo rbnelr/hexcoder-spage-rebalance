@@ -7,9 +7,10 @@ local M = {}
 
 ---- Recipes
 local function recipes()
+	-- holmium in endgame: biochamber + foundry
 	meld(data.raw["recipe"]["holmium-plate"], {
 		energy_required = 2, -- was 1
-		categories = {"crafting-with-fluid"} -- was crafting-with-fluid, metallurgy (foundry uses holmium-casting instead)
+		categories = meld.overwrite{"crafting-with-fluid"} -- was crafting-with-fluid, metallurgy (foundry uses holmium-casting instead)
 	})
 	-- foundry version has to be more efficent or else its pointless to use foundry on fuglora
 	local holmium_foundry = table.deepcopy(data.raw["recipe"]["holmium-plate"])
@@ -17,7 +18,7 @@ local function recipes()
 		name = "holmium-casting",
 		localised_name = {"", "Holmium casting"},
 		energy_required = 3.2,
-		categories = {"metallurgy"},
+		categories = meld.overwrite{"metallurgy"},
 		ingredients = common.meld_add_or_assign{
 			{type = "fluid", name = "holmium-solution", amount = 30, fluidbox_multiplier = 4},
 		},
@@ -36,9 +37,11 @@ end
 
 ---- Electromagnetic science (hard science setting)
 local function science()
-	-- raw cost per pack 29.2 -> 131 (4.5x), EM plant base prod 50% -> 25% on everything it can make, holmium plate in foundry,
+	-- raw cost per pack 29.2 -> 130.7 (4.5x), EM plant base prod 50% -> 25% on everything it can make, holmium plate in foundry,
 	--   holmium solution in biochamber (mod only), other intermediates from Nauvis resources (ignores scrap)
 	--   the rocket-control-unit is 91 of that, without it 1.4x
+	-- late (prod 3) 11.8 -> 41.3 (3.5x, RCU 23.7 of it), legendary prod 3 4.5 -> 12.8 (2.8x, RCU 5.5); see tools/planet_costs.py
+	-- TODO: could consider making this more expensive? would have to compare base sizes
 	meld(data.raw["recipe"]["electromagnetic-science-pack"], {
 		energy_required = 14, -- was 10
 	})
@@ -77,9 +80,13 @@ end
 
 ---- Machines
 local function machines()
+	-- speed prodded recycler feels way too fast
+	-- maybe also a good nerf for quality upcycling?
 	meld(data.raw["furnace"]["recycler"], {
 		module_slots = 2, -- was 4
 	})
+	-- 25% prod feels fine, is now less polluting than AM3, but maybe should leave it,
+	-- since prod bonus saves us pollution for blue chips etc., but compared to 50% free prod it's probably still balanced compared to vanilla?)
 	meld(data.raw["assembling-machine"]["electromagnetic-plant"], {
 		module_slots = 4, -- was 5
 		crafting_speed = 2, -- was 2
