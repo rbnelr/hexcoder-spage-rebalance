@@ -1,5 +1,6 @@
-local mod_name = "hexcoder-spage-rebalance-"
+local const = require("const")
 local meld = require("__core__.lualib.meld")
+local common = require("prototypes/common")
 
 local M = {}
 
@@ -11,7 +12,7 @@ function M.final_fixes()
 	})
 	meld(data.raw["technology"]["utility-science-pack"], {
 		unit = { count = 350,  -- was 100
-		         ingredients = meld.append{{"production-science-pack", 1}} }
+		         ingredients = common.list_add_or_assign{{"production-science-pack", 1}} }
 	})
 	
 	meld(data.raw["technology"]["automation-3"], { -- randomly really expensive in space age?
@@ -22,14 +23,14 @@ function M.final_fixes()
 	})
 	meld(data.raw["technology"]["elevated-rail"], {
 		unit = { count = 160, -- was 100
-		         ingredients = meld.append{{"space-science-pack", 1}} }
+		         ingredients = common.list_add_or_assign{{"space-science-pack", 1}} }
 	})
 	meld(data.raw["technology"]["nuclear-fuel-reprocessing"], { -- 50 is a joke
 		unit = { count = 220 } -- was 50
 	})
 	meld(data.raw["technology"]["battery-mk2-equipment"], {
 		unit = { count = 350, -- was 100
-		         ingredients = meld.append{{"space-science-pack", 1}} }
+		         ingredients = common.list_add_or_assign{{"space-science-pack", 1}} }
 	})
 	meld(data.raw["technology"]["battery-mk3-equipment"], {
 		unit = { count = 900 }, -- was 500
@@ -40,11 +41,11 @@ function M.final_fixes()
 	
 	meld(data.raw["technology"]["power-armor-mk2"], {
 		unit = { count = 600, -- was 400
-			     ingredients = meld.append{{"space-science-pack", 1}} }
+			     ingredients = common.list_add_or_assign{{"space-science-pack", 1}} }
 	})
 	meld(data.raw["technology"]["fission-reactor-equipment"], {
 		unit = { count = 800, -- was 200
-		         ingredients = meld.append{{"space-science-pack", 1}} }
+		         ingredients = common.list_add_or_assign{{"space-science-pack", 1}} }
 	})
 	
 	for _,num in pairs({"1","2","3","4","5","6"}) do
@@ -63,11 +64,11 @@ function M.final_fixes()
 		})
 		meld(data.raw["technology"]["cargo-bay-limit-2"], {
 			unit = { count = 1200, -- was 1000
-			         ingredients = meld.append{{"production-science-pack", 1}} }
+			         ingredients = common.list_add_or_assign{{"production-science-pack", 1}} }
 		})
 		meld(data.raw["technology"]["cargo-bay-limit-3"], {
 			unit = { count = 2000, -- was 2000
-			         ingredients = meld.append{{"production-science-pack", 1}, {"utility-science-pack", 1}} }
+			         ingredients = common.list_add_or_assign{{"production-science-pack", 1}, {"utility-science-pack", 1}} }
 		})
 	end
 	
@@ -82,13 +83,13 @@ function M.final_fixes()
 	data:extend{
 		meld(table.deepcopy(data.raw["technology"]["rocket-part-productivity"]), {
 			name = "rocket-part-productivity-1",
-			prerequisites = {"production-science-pack", "utility-science-pack", "space-science-pack"},
+			prerequisites = meld.overwrite{"production-science-pack", "utility-science-pack", "space-science-pack"},
 			unit = meld.overwrite{ count = 1000, ingredients = NAUVIS_SCI_AND_SPACE, time = 60 },
 			max_level = meld.delete(),
 		}),
 		meld(table.deepcopy(data.raw["technology"]["rocket-part-productivity"]), {
 			name = "rocket-part-productivity-2",
-			prerequisites = {"rocket-part-productivity-1"},
+			prerequisites = meld.overwrite{"rocket-part-productivity-1"},
 			unit = meld.overwrite{ count = 3000, ingredients = NAUVIS_SCI_AND_SPACE, time = 60 },
 			max_level = meld.delete(),
 		}),
@@ -107,7 +108,7 @@ function M.final_fixes()
 				},
 				time = 60
 			},
-			prerequisites = {"rocket-part-productivity-2"}
+			prerequisites = meld.overwrite{"rocket-part-productivity-2"} -- was cryogenic-science-pack
 		}),
 	}
 	data.raw["technology"]["rocket-part-productivity"] = nil
@@ -119,7 +120,7 @@ function M.final_fixes()
 	
 	-- Stolen from  ScalingScienceCounts  -  TeabagNation
 	local multipliers = {}
-	for cost in string.gmatch(settings.startup[mod_name.."scales"].value, '([^,]+)') do
+	for cost in string.gmatch(settings.startup[const.SETTING_SCALES].value, '([^,]+)') do
 		table.insert(multipliers, tonumber(cost))
 	end
 	

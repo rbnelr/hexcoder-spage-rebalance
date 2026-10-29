@@ -1,4 +1,3 @@
-local mod_name = "hexcoder-spage-rebalance-"
 local meld = require("__core__.lualib.meld")
 
 ---@param recipe LuaRecipePrototype

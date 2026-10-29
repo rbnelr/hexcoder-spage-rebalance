@@ -1,1 +1,1 @@
-require("script/research_costs").final_fixes()
+require("prototypes/research_costs").final_fixes()

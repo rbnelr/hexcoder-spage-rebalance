@@ -1,6 +1,5 @@
-local mod_name = "hexcoder-spage-rebalance-"
 local meld = require("__core__.lualib.meld")
-local myutil = require("myutil")
+local common = require("prototypes/common")
 
 local M = {}
 
@@ -57,11 +56,11 @@ meld(data.raw["item"]["low-density-structure"], {
 })
 
 meld(data.raw["recipe"]["rocket-part"], {
-	ingredients = meld.overwrite({
+	ingredients = meld.overwrite{
 		{type="item", name="low-density-structure", amount=2},
 		{type="item", name="rocket-fuel", amount=3},
 		{type="item", name="rocket-control-unit", amount=1},
-	}),
+	},
 })
 meld(data.raw["rocket-silo"]["rocket-silo"], {
 	rocket_parts_required = 100,
@@ -121,7 +120,7 @@ meld(data.raw["resource"]["tungsten-ore"], {
 -- so either need to unlock mining with fluid with this tech like tungsten_mining_require_lube mod
 -- or put the drill behind the uranium mining tech, which actually just unlocks this, so I'll rename it as I think this makes a lot more sense
 meld(data.raw["technology"]["big-mining-drill"], {
-	prerequisites = meld.append{"uranium-mining"}
+	prerequisites = common.list_add_or_assign{"uranium-mining"}
 })
 meld(data.raw["technology"]["uranium-mining"], {
 	localised_name = "Mining with fluid",
@@ -203,15 +202,15 @@ meld(data.raw["planet"]["nauvis"], {
 
 meld(data.raw["recipe"]["metallic-asteroid-crushing"], {
 	energy_required = 10/3, -- 3.333334 was 2
-	results = myutil.overwrite_by_name{{type="item", name="iron-ore", amount_min=7, amount_max=24}}, -- avg 15 was 20
+	results = common.list_add_or_assign{{type="item", name="iron-ore", amount_min=7, amount_max=24}}, -- avg 15 was 20
 })
 meld(data.raw["recipe"]["carbonic-asteroid-crushing"], {
 	energy_required = 3.1, -- was 2
-	results = myutil.overwrite_by_name{{type="item", name="carbon", amount_min=6, amount_max=12}}, -- avg 9 was 10
+	results = common.list_add_or_assign{{type="item", name="carbon", amount_min=6, amount_max=12}}, -- avg 9 was 10
 })
 meld(data.raw["recipe"]["oxide-asteroid-crushing"], {
 	energy_required = 3.2, -- was 2
-	results = myutil.overwrite_by_name{{type="item", name="ice", amount_min=2, amount_max=6}}, -- avg 4 was 5
+	results = common.list_add_or_assign{{type="item", name="ice", amount_min=2, amount_max=6}}, -- avg 4 was 5
 })
 
 meld(data.raw["recipe"]["advanced-metallic-asteroid-crushing"], {
@@ -241,24 +240,24 @@ meld(data.raw["recipe"]["advanced-oxide-asteroid-crushing"], {
 
 meld(data.raw["recipe"]["thruster-fuel"], {
 	energy_required = 2,
-	ingredients = meld.overwrite({
+	ingredients = meld.overwrite{
 		{type="item", name="carbon", amount=10}, -- was 2, lots of fuel needed
 		{type="fluid", name="water", amount=10}, -- was 10
-	}),
-	results = meld.overwrite({
+	},
+	results = meld.overwrite{
 		{type="fluid", name="thruster-fuel", amount=125}, -- was 75
-	}),
+	},
 	localised_description = "A inefficient method to produce hydrocarbon fuel."
 })
 meld(data.raw["recipe"]["thruster-oxidizer"], {
 	energy_required = 5, -- slow, lore is electrolysis to get oxygen?
-	ingredients = meld.overwrite({
+	ingredients = meld.overwrite{
 		{type="item", name="iron-stick", amount=1}, -- was 2, this is just the electrode
 		{type="fluid", name="water", amount=45}, -- was 10
-	}),
-	results = meld.overwrite({
+	},
+	results = meld.overwrite{
 		{type="fluid", name="thruster-oxidizer", amount=100}, -- was 75
-	}),
+	},
 	localised_description = "Electrolysis of water using iron electrodes.\nLiquid oxygen is captured but all hydrogen leaks away."
 })
 -- carbon->coal->liquefaction->cracking->light oil + petro gas is about 10carbon->10fluid (5+5)
@@ -269,14 +268,14 @@ meld(data.raw["recipe"]["thruster-oxidizer"], {
 -- TODO: this sadly depends on coal liquefaction or simple coal liquefaction, soe is behind vulcanus, unlock on gleba too?
 meld(data.raw["recipe"]["advanced-thruster-fuel"], {
 	energy_required = 4,
-	ingredients = meld.overwrite({
+	ingredients = meld.overwrite{
 		{type="item", name="solid-fuel", amount=1}, -- 10 light oil
 		{type="fluid", name="petroleum-gas", amount=8},
-	}),
-	results = meld.overwrite({
+	},
+	results = meld.overwrite{
 		{type="fluid", name="thruster-fuel", amount=500}, -- 4x may be fair with all the oil processing involved
 		-- consider refunding water or steam here?
-	}),
+	},
 	localised_description = "" -- TODO:
 })
 -- TODO: custom icon
@@ -284,15 +283,15 @@ meld(data.raw["recipe"]["advanced-thruster-fuel"], {
 meld(data.raw["recipe"]["advanced-thruster-oxidizer"], {
 	energy_required = 18,
 	categories = {"chemistry", "cryogenics"},
-	ingredients = meld.overwrite({
+	ingredients = meld.overwrite{
 		{type="item", name="copper-plate", amount=6},
 		{type="item", name="iron-stick", amount=6},
 		{type="fluid", name="water", amount=252}, -- 45*6=270 -> cheaper
-	}),
-	results = meld.overwrite({
+	},
+	results = meld.overwrite{
 		{type="fluid", name="thruster-oxidizer", amount=600}, -- was 1500
 		{type="fluid", name="thruster-fuel", amount_min=50, amount_max=70},
-	}),
+	},
 	localised_description = "Electrolysis of water using copper-wrapped electrodes.\nLiquid oxygen is captured but most hydrogen leaks away."
 })
 
@@ -376,18 +375,16 @@ data:extend({
 
 data.raw["technology"]["advanced-asteroid-processing"] = nil
 
-meld(data.raw["technology"]["asteroid-productivity"], {
-	prerequisites = meld.overwrite{"advanced-metallic-asteroid-processing",
-	                 "advanced-oxide-asteroid-processing",
-	                 "advanced-carbonic-asteroid-processing"}
-})
-meld(data.raw["technology"]["planet-discovery-aquilo"], {
-	prerequisites = meld.overwrite{"rocket-turret", "heating-tower", "asteroid-reprocessing",
-		"advanced-metallic-asteroid-processing",
-		"advanced-oxide-asteroid-processing",
-		"advanced-carbonic-asteroid-processing"
-	}
-})
+-- replace advanced-asteroid-processing with the split techs
+for _,tech in pairs{"asteroid-productivity", "planet-discovery-aquilo"} do
+	meld(data.raw["technology"][tech], {
+		prerequisites = common.list_replace({"advanced-asteroid-processing"}, {
+			"advanced-metallic-asteroid-processing",
+			"advanced-oxide-asteroid-processing",
+			"advanced-carbonic-asteroid-processing"
+		})
+	})
+end
 
 end
 

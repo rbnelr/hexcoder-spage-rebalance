@@ -1,9 +1,9 @@
-local mod_name = "hexcoder-spage-rebalance-"
+local const = require("const")
 
 data:extend({
 	{
 		type = "string-setting",
-		name = mod_name.."scales",
+		name = const.SETTING_SCALES,
 		localised_name = "Research multiplier by number of science packs",
 		localised_description = "",
 		setting_type = "startup",
@@ -12,7 +12,7 @@ data:extend({
 	},
 	{
 		type = "int-setting",
-		name = mod_name.."rocket-launch-pollution-amount",
+		name = const.SETTING_LAUNCH_POLLUTION,
 		localised_name = "Rocket launch pollution amount",
 		localised_description = "",
 		setting_type = "runtime-global",

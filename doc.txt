@@ -48,5 +48,5 @@ in other words avoid carbon -> solid fuel making other forms of rocket fuel prod
 
 look at energy values:
  carbon -> thruster fuel (X fluid / MJ of fuel)
- carbon + sulfur -> solid fuel (less or more MJ?) -> thruster fuel (more fluid / MJ, or if more MJ
+ carbon + sulfur -> solid fuel (less or more MJ?) -> thruster fuel (more fluid / MJ, or if more MJ)
  

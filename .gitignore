@@ -1,2 +1,4 @@
 .vscode/**
 *.xcf
+CLAUDE.md
+.claude/

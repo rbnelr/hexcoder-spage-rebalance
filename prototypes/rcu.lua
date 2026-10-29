@@ -1,5 +1,6 @@
-local mod_name = "hexcoder-spage-rebalance-"
+local const = require("const")
 local meld = require("__core__.lualib.meld")
+local common = require("prototypes/common")
 
 local M = {}
 
@@ -9,7 +10,7 @@ function M.data()
 		{
 			type = "item",
 			name = "rocket-control-unit",
-			icon = "__hexcoder-spage-rebalance__/graphics/icons/rocket-control-unit.png",
+			icon = const.MOD_DIR.."/graphics/icons/rocket-control-unit.png",
 			order = "d[rocket-parts]-c[rocket-control-unit]",
 			subgroup = "intermediate-product",
 			stack_size = 25,
@@ -33,7 +34,7 @@ function M.data()
 		{
 			type = "technology",
 			name = "rocket-control-unit",
-			icon = "__hexcoder-spage-rebalance__/graphics/technology/rocket-control-unit.png",
+			icon = const.MOD_DIR.."/graphics/technology/rocket-control-unit.png",
 			icon_size = 256,
 			effects = {{
 				type  = "unlock-recipe",
@@ -55,7 +56,7 @@ function M.data()
 		{
 			type = "technology",
 			name = "rocket-control-unit-productivity",
-			icons = util.technology_icon_constant_recipe_productivity("__hexcoder-spage-rebalance__/graphics/technology/rocket-control-unit-productivity.png"),
+			icons = util.technology_icon_constant_recipe_productivity(const.MOD_DIR.."/graphics/technology/rocket-control-unit-productivity.png"),
 			icon_size = 256,
 			effects = {{
 				type = "change-recipe-productivity",
@@ -102,14 +103,9 @@ function M.updates()
 		{ type = "item", name = "rocket-launcher",           amount = 4 }
 	}
 
-	data.raw["technology"]["rocket-silo"].prerequisites = {
-		"logistic-robotics",
-		"rocket-fuel",
-		"advanced-material-processing-2",
-		"low-density-structure",
-		"rocket-control-unit",
-		"concrete"
-	}
+	meld(data.raw["technology"]["rocket-silo"], {
+		prerequisites = common.list_replace({"processing-unit"}, {"rocket-control-unit"}) -- rocket-control-unit requires processing-unit
+	})
 end
 
 return M
