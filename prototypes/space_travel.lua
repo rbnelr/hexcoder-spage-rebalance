@@ -1,8 +1,11 @@
+-- Platform acceleration and drag, asteroid damage, planet distances, thruster performance, cargo bays
+-- Standalone: only references vanilla prototypes, could become its own mod
 local meld = require("__core__.lualib.meld")
 
 local M = {}
 
-function M.updates()
+---- Platform acceleration and drag
+local function acceleration()
 	-- Stolen from  Rocs-Improved-Platform-Drag  -  thesixthroc
 
 	-- reference:
@@ -37,6 +40,10 @@ function M.updates()
 	-- TODO: I like slow accel, but deccel is so slow that stopping in response to asteroid damage is barely even viable
 	-- using thrusters to slow down is sadly not a thing
 	-- I could try adjusting the function, It's likely possible to add a arbitrary drag force whenever thrust is 0, if min() is a thing
+	
+	-- the other TFMG mod has an interesting thing here (but also super slow)
+	-- TODO: add a debug readout to tune this
+	-- also add cargo bay weight
 
 	-- could multiply drag expression by (max(k*(1-thrust/cutoff), 0) + 1)
 	-- multiplies deccel by k at 0 thrust, ramping down to 1 at cutoff thrust
@@ -45,13 +52,20 @@ function M.updates()
 		"(thrust / (1 + weight * "..mass_scale.." / 10000000) - ((1500 * speed * speed + 1500 * abs(speed)) * ("
 		.. replacement_for_width .." * ".. breaking_expr
 		.. " * 0.5) + "..base_drag..") * sign(speed)) / (weight * "..mass_scale..") / 60"
+end
 
+---- Asteroid damage
+local function asteroid_damage()
 	-- even medium asteroids instantly nuke ship now, if I understand correctly a medium asteroid can punch through 64 tiles, and does not slow down?
+	-- 2.1 recently fixed damage, but generally I feel like any damage is punishing
+	-- only issue would be people cheesing it with "armor" or just repair packs, but I'll see what I think
 	for _,a in pairs(data.raw["asteroid"]) do
 		a.damage_per_hp = a.damage_per_hp * 0.25 -- if this feels right, probably do 1,2,3,4 damage for small,medium,big,huge (other than promethium)
 	end
+end
 
-	--== Planet distances
+---- Planet distances
+local function planet_distances()
 	-- TODO: This may really mess with biter egg transport, what do?
 	local dist_mult = 3
 	local dist_mult2 = 2.5
@@ -75,12 +89,32 @@ function M.updates()
 
 	data.raw["space-connection"]["aquilo-solar-system-edge"].length = math.floor(
 		data.raw["space-connection"]["aquilo-solar-system-edge"].length * dist_mult3)
-	
+		
+	-- TODO: handle modded space connections? maybe with a catchall multiplier?
+end
+
+---- Thrusters
+local function thrusters()
 	-- what determines thrust? fuel value of fluids?
 	-- (effectivity of at min/max_performance seemingly is meant to go up to 100%)
 	meld(data.raw["thruster"]["thruster"], {
-		min_performance = { fluid_volume = 0.05, fluid_usage = 6/60, effectivity=1 }, -- fluid_usage was .1 (6/s)
-		max_performance = { fluid_volume = 0.9, fluid_usage = 250/60, effectivity=0.55 }, -- fluid_usage was 2 (120/s)
+		min_performance = { fluid_volume = 0.05, fluid_usage = 6/60, effectivity=1 }, -- fluid_usage was .1 (6/s), fluid_volume was 0.1
+		max_performance = { fluid_volume = 0.9, fluid_usage = 250/60, effectivity=0.55 }, -- fluid_usage was 2 (120/s), fluid_volume was 0.8, effectivity was 0.51
 	})
 end
+
+---- Out of place: space age cargo bays
+local function cargo_bays()
+	meld(data.raw["cargo-bay"]["cargo-bay"], {    inventory_size_bonus = 10 }) -- was 20
+	meld(data.raw["cargo-bay"]["landing-pad-unloading-bay"], { inventory_size_bonus = 10 }) -- was 20
+end
+
+function M.late()
+	acceleration()
+	asteroid_damage()
+	planet_distances()
+	thrusters()
+	cargo_bays()
+end
+
 return M

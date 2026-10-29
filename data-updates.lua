@@ -1,8 +1,3 @@
---require("prototypes/rcu").updates()
-require("prototypes/space_travel").updates()
---require("prototypes/fun_promethium")
---require("prototypes/hard_recipes")
---require("prototypes/spage_machine_nerfs")
---require("prototypes/space_sci").updates()
-
-require("prototypes/custom_recycling")
+-- Runs after all mods' data.lua and after the recycler generated recycling recipes
+require("prototypes/space_travel").late()
+require("prototypes/recycling").late()

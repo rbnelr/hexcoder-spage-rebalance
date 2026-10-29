@@ -1,10 +1,14 @@
+-- Rocket control unit (displayed as "Signal processor") and its productivity tech, rocket part recipe, 100 parts per rocket,
+-- RCU in atomic bomb and spidertron
+-- Standalone: only references vanilla prototypes, could become its own mod
 local const = require("const")
 local meld = require("__core__.lualib.meld")
 local common = require("prototypes/common")
 
 local M = {}
 
-function M.data()
+---- Rocket control unit
+local function rcu()
 	-- Stolen from  rcu-restored_1.1.2  -  SilentSimulacrum
 	data:extend({
 		{
@@ -81,12 +85,26 @@ function M.data()
 	})
 end
 
-function M.updates()
-	data.raw["recipe"]["rocket-part"].ingredients = {
-		{ type = "item", name = "rocket-control-unit",   amount = 1 },
-		{ type = "item", name = "low-density-structure", amount = 1 },
-		{ type = "item", name = "rocket-fuel",           amount = 1 }
-	}
+---- Rocket part and silo
+local function rocket()
+	meld(data.raw["recipe"]["rocket-part"], {
+		ingredients = meld.overwrite{
+			{type="item", name="rocket-control-unit", amount=1}, -- new, replaces processing-unit
+			{type="item", name="low-density-structure", amount=2}, -- was 1
+			{type="item", name="rocket-fuel", amount=3}, -- was 1
+		},
+	})
+	meld(data.raw["rocket-silo"]["rocket-silo"], {
+		rocket_parts_required = 100, -- was 50
+	})
+
+	meld(data.raw["technology"]["rocket-silo"], {
+		prerequisites = common.meld_replace({"processing-unit"}, {"rocket-control-unit"}) -- rocket-control-unit requires processing-unit
+	})
+end
+
+---- RCU in other recipes
+local function rcu_uses()
 	data.raw["recipe"]["atomic-bomb"].ingredients = {
 		{ type = "item", name = "explosives",          amount = 10 },
 		{ type = "item", name = "rocket-control-unit", amount = 10 },
@@ -102,10 +120,12 @@ function M.updates()
 		{ type = "item", name = "raw-fish",                  amount = 1 },
 		{ type = "item", name = "rocket-launcher",           amount = 4 }
 	}
+end
 
-	meld(data.raw["technology"]["rocket-silo"], {
-		prerequisites = common.list_replace({"processing-unit"}, {"rocket-control-unit"}) -- rocket-control-unit requires processing-unit
-	})
+function M.data()
+	rcu()
+	rocket()
+	rcu_uses()
 end
 
 return M

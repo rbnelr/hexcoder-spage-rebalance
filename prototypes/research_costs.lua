@@ -1,10 +1,13 @@
+-- Tech cost tweaks, infinite research nerfs, rocket-part-productivity split,
+-- global tech cost multiplier by number of science packs (applies to all mods' techs, keep last)
 local const = require("const")
 local meld = require("__core__.lualib.meld")
 local common = require("prototypes/common")
 
 local M = {}
 
-function M.final_fixes()
+---- Individual tech cost tweaks
+local function tweaks()
 	-- Tweaks to costs
 	
 	meld(data.raw["technology"]["production-science-pack"], {
@@ -12,7 +15,7 @@ function M.final_fixes()
 	})
 	meld(data.raw["technology"]["utility-science-pack"], {
 		unit = { count = 350,  -- was 100
-		         ingredients = common.list_add_or_assign{{"production-science-pack", 1}} }
+		         ingredients = common.meld_add_or_assign{{"production-science-pack", 1}} }
 	})
 	
 	meld(data.raw["technology"]["automation-3"], { -- randomly really expensive in space age?
@@ -23,14 +26,14 @@ function M.final_fixes()
 	})
 	meld(data.raw["technology"]["elevated-rail"], {
 		unit = { count = 160, -- was 100
-		         ingredients = common.list_add_or_assign{{"space-science-pack", 1}} }
+		         ingredients = common.meld_add_or_assign{{"space-science-pack", 1}} }
 	})
 	meld(data.raw["technology"]["nuclear-fuel-reprocessing"], { -- 50 is a joke
 		unit = { count = 220 } -- was 50
 	})
 	meld(data.raw["technology"]["battery-mk2-equipment"], {
 		unit = { count = 350, -- was 100
-		         ingredients = common.list_add_or_assign{{"space-science-pack", 1}} }
+		         ingredients = common.meld_add_or_assign{{"space-science-pack", 1}} }
 	})
 	meld(data.raw["technology"]["battery-mk3-equipment"], {
 		unit = { count = 900 }, -- was 500
@@ -41,11 +44,11 @@ function M.final_fixes()
 	
 	meld(data.raw["technology"]["power-armor-mk2"], {
 		unit = { count = 600, -- was 400
-			     ingredients = common.list_add_or_assign{{"space-science-pack", 1}} }
+			     ingredients = common.meld_add_or_assign{{"space-science-pack", 1}} }
 	})
 	meld(data.raw["technology"]["fission-reactor-equipment"], {
 		unit = { count = 800, -- was 200
-		         ingredients = common.list_add_or_assign{{"space-science-pack", 1}} }
+		         ingredients = common.meld_add_or_assign{{"space-science-pack", 1}} }
 	})
 	
 	for _,num in pairs({"1","2","3","4","5","6"}) do
@@ -57,21 +60,70 @@ function M.final_fixes()
 		local tech = data.raw["technology"]["worker-robots-storage-"..num]
 		tech.unit.count = tech.unit.count * 3.5
 	end
-	
+end
+
+---- Mod compat
+local function compat()
 	if mods["CargoBayLimitResearch"] then
 		meld(data.raw["technology"]["cargo-bay-limit-1"], {
 			unit = { count = 700 } -- was 500
 		})
 		meld(data.raw["technology"]["cargo-bay-limit-2"], {
 			unit = { count = 1200, -- was 1000
-			         ingredients = common.list_add_or_assign{{"production-science-pack", 1}} }
+			         ingredients = common.meld_add_or_assign{{"production-science-pack", 1}} }
 		})
 		meld(data.raw["technology"]["cargo-bay-limit-3"], {
 			unit = { count = 2000, -- was 2000
-			         ingredients = common.list_add_or_assign{{"production-science-pack", 1}, {"utility-science-pack", 1}} }
+			         ingredients = common.meld_add_or_assign{{"production-science-pack", 1}, {"utility-science-pack", 1}} }
 		})
 	end
-	
+end
+
+---- Infinite research
+-- mining prod scales crazy
+-- maybe add more levels with additional science packs and manually adjust counts (don't scale with number of packs?)
+
+-- add space science cost to some researches?
+
+-- nerf infinite resource processing productivity research, but keep mining prod
+--TODO: analyze and nerf robot speed
+local inf_bonuses = {
+	["carbonic-asteroid-crushing"] = 0.05,
+	["oxide-asteroid-crushing"] = 0.05,
+	["metallic-asteroid-crushing"] = 0.05,
+	["advanced-carbonic-asteroid-crushing"] = 0.05,
+	["advanced-oxide-asteroid-crushing"] = 0.05,
+	["advanced-metallic-asteroid-crushing"] = 0.05,
+	["scrap-recycling"] = 0.05,
+	["processing-unit"] = 0.05,
+	["steel-plate"] = 0.05,
+	["casting-steel"] = 0.05,
+	["low-density-structure"] = 0.05,
+	["casting-low-density-structure"] = 0.05,
+	["plastic-bar"] = 0.05,
+	["bioplastic"] = 0.05,
+	["rocket-fuel"] = 0.05,
+	["rocket-fuel-from-jelly"] = 0.05,
+	["ammonia-rocket-fuel"] = 0.05,
+	["rocket-part"] = 0.05,
+	["rocket-control-unit"] = 0.05,
+
+	-- all were 0.1, keep mining prod, scrap prod, and damage the same
+}
+local inf_scl = 4/3
+local inf_costs = { -- all were "1.5^L*1000"
+	-- 1.225^L scales less than 1.5^L, but with halved prod bonus, to get the same prod 1.225^2L=1.5^L almost exactly matches
+	-- I still want it to scale more, so things like 300% prod are impossible, but not that much more
+	-- at the same prod bonus (level 2L vs L) (1.33334^2L*2)/(1.5^L) is 10.9x at Lvl10, 60x at Lvl20, 327x at Lvl30
+	["steel-plate-productivity"] = inf_scl.."^L*2000",
+	["plastic-bar-productivity"] = inf_scl.."^L*2000",
+	["rocket-fuel-productivity"] = inf_scl.."^L*2000",
+	["low-density-structure-productivity"] = inf_scl.."^L*2000",
+	["processing-unit-productivity"] = inf_scl.."^L*2000",
+}
+
+-- split infinite rocket-part-productivity into 1, 2 and 3 (infinite)
+local function rocket_part_productivity()
 	local NAUVIS_SCI_AND_SPACE = {
 		{"automation-science-pack", 1},
 		{"logistic-science-pack", 1},
@@ -113,54 +165,17 @@ function M.final_fixes()
 	}
 	data.raw["technology"]["rocket-part-productivity"] = nil
 	
-	-- mining prod scales crazy
-	-- maybe add more levels with additional science packs and manually adjust counts (don't scale with number of packs?)
-	
-	-- add space science cost to some researches?
-	
+	common.replace_tech_references("rocket-part-productivity", {"rocket-part-productivity-1"})
+end
+
+---- Global cost multiplier by number of science packs, also applies inf_bonuses and inf_costs
+local function scale_costs()
 	-- Stolen from  ScalingScienceCounts  -  TeabagNation
 	local multipliers = {}
 	for cost in string.gmatch(settings.startup[const.SETTING_SCALES].value, '([^,]+)') do
 		table.insert(multipliers, tonumber(cost))
 	end
-	
-	-- nerf infinite resource processing productivity research, but keep mining prod
-	--TODO: analyze and nerf robot speed
-	local inf_bonuses = {
-		["carbonic-asteroid-crushing"] = 0.05,
-		["oxide-asteroid-crushing"] = 0.05,
-		["metallic-asteroid-crushing"] = 0.05,
-		["advanced-carbonic-asteroid-crushing"] = 0.05,
-		["advanced-oxide-asteroid-crushing"] = 0.05,
-		["advanced-metallic-asteroid-crushing"] = 0.05,
-		["scrap-recycling"] = 0.05,
-		["processing-unit"] = 0.05,
-		["steel-plate"] = 0.05,
-		["casting-steel"] = 0.05,
-		["low-density-structure"] = 0.05,
-		["casting-low-density-structure"] = 0.05,
-		["plastic-bar"] = 0.05,
-		["bioplastic"] = 0.05,
-		["rocket-fuel"] = 0.05,
-		["rocket-fuel-from-jelly"] = 0.05,
-		["ammonia-rocket-fuel"] = 0.05,
-		["rocket-part"] = 0.05,
-		["rocket-control-unit"] = 0.05,
 
-		-- keep mining prod, scrap prod, and damage the same
-	}
-	local inf_scl = 4/3
-	local inf_costs = { -- all were "1.5^L*1000"
-		-- 1.225^L scales less than 1.5^L, but with halved prod bonus, to get the same prod 1.225^2L=1.5^L almost exactly matches
-		-- I still want it to scale more, so things like 300% prod are impossible, but not that much more
-		-- (1.33334^L*2)/(1.5^L) is a 8.4x at Lvl10, 45x at Lvl20, 250x at Lvl30
-		["steel-plate-unit-productivity"] = inf_scl.."^L*2000",
-		["plastic-bar-productivity"] = inf_scl.."^L*2000",
-		["rocket-fuel-productivity"] = inf_scl.."^L*2000",
-		["low-density-structure-productivity"] = inf_scl.."^L*2000",
-		["processing-unit-productivity"] = inf_scl.."^L*2000",
-	}
-	
 	-- set all multipliers
 	for name,v in pairs(data.raw["technology"]) do
 		if v.unit ~= nil and v.unit.ingredients ~= nil then
@@ -203,7 +218,10 @@ function M.final_fixes()
 			end
 		end
 	end
-	
+end
+
+---- Robot speed
+local function robot_speed()
 	-- nerf robot move speed
 	for i,v in pairs({
 		[1] = 0.50, -- 35%	 35% -> 50%	 50%
@@ -220,6 +238,14 @@ function M.final_fixes()
 		local tech = data.raw["technology"]["worker-robots-speed-"..i]
 		tech.effects[1].modifier = v
 	end
+end
+
+function M.final()
+	tweaks()
+	compat()
+	rocket_part_productivity()
+	scale_costs()
+	robot_speed()
 end
 
 return M

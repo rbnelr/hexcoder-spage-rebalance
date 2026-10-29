@@ -1,3 +1,4 @@
+-- Minimum recycling time for all generated recycling recipes
 local meld = require("__core__.lualib.meld")
 
 ---@param recipe LuaRecipePrototype
@@ -32,8 +33,15 @@ local function adjust_recipe(recipe)
 	end
 end
 
-for name, recipe in pairs(data.raw.recipe) do
-	if name:find("-recycling$") then
-		adjust_recipe(recipe)
+local M = {}
+
+-- runs in data-updates, after the recycler mod generated the recycling recipes
+function M.late()
+	for name, recipe in pairs(data.raw.recipe) do
+		if name:find("-recycling$") then
+			adjust_recipe(recipe)
+		end
 	end
 end
+
+return M
