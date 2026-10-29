@@ -7,6 +7,22 @@ function M.updates()
 
 	-- mostly stolen from Science Difficulty Overhaul: Harder Science Packs - Cubickman
 	
+	-- stick fuckery
+	table.insert(data.raw["technology"]["automation"].effects,
+		{
+			type = "unlock-recipe",
+			recipe = "iron-stick"
+		}
+	)
+	for _,tech in pairs{"railway", "circuit-network", "electric-energy-distribution-1", "concrete"} do
+		for k,v in pairs(data.raw["technology"][tech].effects) do
+			if v.type == "unlock-recipe" and v.recipe == "iron-stick" then
+				data.raw["technology"][tech].effects[k] = nil
+			end
+		end
+		table.insert(data.raw["technology"][tech].prerequisites, "automation")
+	end
+
 	meld(data.raw["recipe"]["automation-science-pack"], {
 		energy_required = 6,
 		ingredients = meld.overwrite({
@@ -29,6 +45,7 @@ function M.updates()
 			{ type = "item", name = "transport-belt",       amount = 2 }
 		}),
 	})
+	table.insert(data.raw["technology"]["logistic-science-pack"].prerequisites, "automation")
 
 	meld(data.raw["recipe"]["military-science-pack"], {
 		energy_required = 14,

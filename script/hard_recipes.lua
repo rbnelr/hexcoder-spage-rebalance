@@ -50,14 +50,14 @@ meld(data.raw["recipe"]["casting-steel"], {
 	}),
 })
 
-meld(data.raw["technology"]["engine"], {
-	effects = meld.append{
-		{
-			type = "unlock-recipe",
-			recipe = "iron-stick"
-		}
-	}
-})
+--meld(data.raw["technology"]["engine"], {
+--	effects = meld.append{
+--		{
+--			type = "unlock-recipe",
+--			recipe = "iron-stick"
+--		}
+--	}
+--})
 meld(data.raw["recipe"]["engine-unit"], {
 	energy_required = 12,
 	ingredients = meld.overwrite({

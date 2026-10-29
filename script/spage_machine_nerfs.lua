@@ -175,10 +175,10 @@ meld(data.raw["assembling-machine"]["cryogenic-plant"], {
 	},
 })
 
-local NAUVIS_CHUNKS = 0.05*2.2 -- was 0.05, had *4
-local NAUVIS_CHUNKS_SPEED = 0.0266667*1.4
-local NAUVIS_SMALL = 0.05*0.7
-local NAUVIS_SMALL_SPEED = 0.0266667*0.9
+local NAUVIS_CHUNKS = 0.05*2.0 -- was 0.05, had *4
+local NAUVIS_CHUNKS_SPEED = 0.0266667*1.2
+local NAUVIS_SMALL = 0.05*0.3
+local NAUVIS_SMALL_SPEED = 0.0266667*0.75
 
 -- buff the trickle of asteroids around nauvis to make stationary platforms more viable
 meld(data.raw["planet"]["nauvis"], {
