@@ -40,7 +40,7 @@ local function science()
 	-- raw cost per pack 29.2 -> 130.7 (4.5x), EM plant base prod 50% -> 25% on everything it can make, holmium plate in foundry,
 	--   holmium solution in biochamber (mod only), other intermediates from Nauvis resources (ignores scrap)
 	--   the rocket-control-unit is 91 of that, without it 1.4x
-	-- late (prod 3) 11.8 -> 41.3 (3.5x, RCU 23.7 of it), legendary prod 3 4.5 -> 12.8 (2.8x, RCU 5.5); see tools/planet_costs.py
+	-- modules: prod 3 vanilla 29.2 -> 11.8 (2.5x), mod 130.7 -> 41.3 (3.2x, RCU 23.7 of it); legendary vanilla 4.5 (6.4x), mod 12.8 (10.2x, RCU 5.5); see tools/planet_costs.py
 	-- TODO: could consider making this more expensive? would have to compare base sizes
 	meld(data.raw["recipe"]["electromagnetic-science-pack"], {
 		energy_required = 14, -- was 10

@@ -109,7 +109,7 @@ local function cargo_bays()
 	meld(data.raw["cargo-bay"]["landing-pad-unloading-bay"], { inventory_size_bonus = 10 }) -- was 20
 end
 
-function M.late()
+function M.data_updates()
 	acceleration()
 	asteroid_damage()
 	planet_distances()

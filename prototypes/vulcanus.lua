@@ -375,7 +375,7 @@ end
 ---- Metallurgic science (hard science setting)
 local function science()
 	-- raw cost per pack 27.0 -> 177.5 (6.6x), casting everything on vulcanus, molten metal from ore melting, sulfuric acid raw, calcite free
-	-- late (prod 3) 14.9 -> 93.5 (6.3x), legendary prod 3 7.8 -> 46.6 (6.0x); see tools/planet_costs.py
+	-- modules: prod 3 vanilla 27.0 -> 14.9 (1.8x), mod 177.5 -> 93.5 (1.9x); legendary vanilla 7.8 (3.5x), mod 46.6 (3.8x); see tools/planet_costs.py
 	--   per pack (no modules): steam turbine 62.8, tungsten plate 40.9 (13.3 of it steel), carbide 28, big pole 25.8, molten copper 20
 	meld(data.raw["recipe"]["metallurgic-science-pack"], {
 		energy_required = 36, -- was 10
@@ -466,7 +466,7 @@ function M.data()
 	mining_with_fluid()
 end
 
-function M.final()
+function M.final_fixes()
 	-- deleted lava recipes, unlocks could have been added by other mods
 	common.remove_recipe_references{"molten-iron-from-lava", "molten-copper-from-lava"}
 end

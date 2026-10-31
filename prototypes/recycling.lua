@@ -36,7 +36,7 @@ end
 local M = {}
 
 -- runs in data-updates, after the recycler mod generated the recycling recipes
-function M.late()
+function M.data_updates()
 	for name, recipe in pairs(data.raw.recipe) do
 		if name:find("-recycling$") then
 			adjust_recipe(recipe)

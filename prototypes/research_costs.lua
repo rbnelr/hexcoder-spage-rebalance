@@ -240,7 +240,7 @@ local function robot_speed()
 	end
 end
 
-function M.final()
+function M.final_fixes()
 	tweaks()
 	compat()
 	rocket_part_productivity()

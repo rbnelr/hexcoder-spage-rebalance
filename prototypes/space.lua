@@ -218,7 +218,7 @@ function M.data()
 	techs()
 end
 
-function M.final()
+function M.final_fixes()
 	-- replace advanced-asteroid-processing with the split techs, also in other mods' techs
 	common.replace_tech_references("advanced-asteroid-processing", {
 		"advanced-metallic-asteroid-processing",

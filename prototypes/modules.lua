@@ -45,7 +45,7 @@ function M.data()
 			ingredients = meld.overwrite{
 				{type="item", name="advanced-circuit", amount=5},
 				{type="item", name="processing-unit", amount=5},
-				{type="item", name="quantum-processor", amount=4}, -- new
+				{type="item", name="quantum-processor", amount=1}, -- new
 				{type="item", name="quality-module-2", amount=5}, -- was 4
 			}
 		})

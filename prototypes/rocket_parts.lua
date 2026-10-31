@@ -17,8 +17,6 @@ local function rcu()
 			icon = const.MOD_DIR.."/graphics/icons/rocket-control-unit.png",
 			order = "d[rocket-parts]-c[rocket-control-unit]",
 			subgroup = "intermediate-product",
-			stack_size = 25,
-			weight = 10000, -- 100 / rocket
 		},
 		{
 			type = "recipe",
@@ -87,6 +85,11 @@ end
 
 ---- Rocket part and silo
 local function rocket()
+	-- raw cost per rocket 5968 -> 36950 (6.19x): part 119 -> 370 (3.10x; RCU 240, 2 LDS 96, 3 rocket fuel 33) and 50 -> 100 parts
+	-- machines: vanilla 5968 -> 702 (8.5x), mod 36950 -> 6552 (5.6x); same as nauvis.lua, plus prod 3 in the silo (40% both)
+	-- share RCU (PU in vanilla) / LDS / rocket fuel: early vanilla 59/31/9%, mod 65/26/9%; data_updates vanilla 21/47/32%, mod 35/41/23%
+	-- oil from coal liquefaction (coal 1) instead of fluids 0.1: early vanilla 6603, mod 41626 (+12%, rocket fuel 12%), data_updates about the same (677 / 6573)
+	--   rocket part productivity research not included; see tools/space_costs.py
 	meld(data.raw["recipe"]["rocket-part"], {
 		ingredients = meld.overwrite{
 			{type="item", name="rocket-control-unit", amount=1}, -- new, replaces processing-unit

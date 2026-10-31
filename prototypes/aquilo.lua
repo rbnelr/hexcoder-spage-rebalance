@@ -26,32 +26,39 @@ local function quantum_processor()
 		--	{type = "fluid", name = "fluoroketone-hot", amount = 14, temperature = 180, ignored_by_stats = 14, ignored_by_productivity = 14}
 		--},
 		ingredients = meld.overwrite{
-			{type = "item", name = "uranium-235", amount = 5}, -- new
-			{type = "item", name = "tungsten-carbide", amount = 8}, -- was 1
-			{type = "item", name = "processing-unit", amount = 10}, -- was 1, quality? maybe 2 rares or similar? how would quality QP work then?
-			{type = "item", name = "superconductor", amount = 8}, -- was 1
-			{type = "item", name = "carbon-fiber", amount = 6}, -- was 1
-			{type = "item", name = "lithium-plate", amount = 6}, -- was 2
+			{type = "item", name = "uranium-235", amount = 4, ignored_by_stats = 3}, -- new
+			{type = "item", name = "processing-unit", amount = 5}, -- was 1, quality? maybe 2 rares or similar? how would quality QP work then?
+			{type = "item", name = "tungsten-carbide", amount = 2}, -- was 1
+			{type = "item", name = "superconductor", amount = 3}, -- was 1
+			{type = "item", name = "carbon-fiber", amount = 2}, -- was 1
+			{type = "item", name = "lithium-plate", amount = 3}, -- was 2
 			{type = "fluid", name = "fluoroketone-cold", amount = 15, ignored_by_stats = 14}, -- was 10
-			{type = "fluid", name = "light-oil", amount = 25}, -- new
+			{type = "fluid", name = "light-oil", amount = 20}, -- new
 		},
 		results = meld.overwrite{
-			{type = "item", name = "quantum-processor", amount = 1, independent_probability=0.72}, -- was 1 (100%)
+			{type = "item", name = "quantum-processor", amount = 1, shared_probability={min=0, max=0.72}}, -- was 1 (100%)
+			{type = "item", name = "uranium-238", amount=1, shared_probability={min=0, max=0.72}, ignored_by_productivity = 1}, -- new
+			{type = "item", name = "uranium-235", amount=1, shared_probability={min=0.72, max=1}, ignored_by_productivity = 1}, -- new
+			{type = "item", name = "uranium-235", amount=3, ignored_by_productivity = 3, ignored_by_stats = 3}, -- new
 			{type = "fluid", name = "fluoroketone-hot", amount = 14, temperature = 180, ignored_by_stats = 14, ignored_by_productivity = 14} -- was 5
 		},
 	})
 	--[[
 		100 QPs stacks=12.5 rocket=1.5625
 	
-		Ingredients for 100 QPs (no prod, 72% output -> 139 crafts):
-		U235: 694 -> 6.9/34.7
-		TC: 1111 -> 22.2/4.4
+		Ingredients for 100 QPs (no prod, 72% output -> 139 crafts), amount -> stacks/rockets:
+		U235: 100 net -> 1.0/5.0 (4 in, 3 U235 + 1 U238 back on success, 4 back on failure; 100 U238 out)
+		TC: 278 -> 2.8/1.1
 		PU: 1389 -> 34.7/11.6
-		SC: 1111 -> 5.6/1.1
-		CF: 833 -> 8.3/1.7
-		LP: 833 -> 8.3/1.7
-		Fl: 139 -> 2.8/0.03 (net, 15 in 14 back; barrels, 100 / rocket)
-		LO: 3472 -> 69.4/0.69 (barrels)
+		SC: 556 -> 2.8/0.56
+		CF: 278 -> 2.8/0.56
+		LP: 417 -> 2.1/0.69
+		Fl: 139 -> 0.3/0.03 (net, 15 in 14 back; barrels, 100 / rocket)
+		LO: 2778 -> 5.6/0.56 (barrels)
+		without PU and LO (made en route): 11.7 stacks / 7.9 rockets, vs 12.5 / 1.56 for the 100 QP; with PU 46.4 / 19.5
+		EM plant prod 3 (65%): 84 crafts, 7.1 stacks / 4.8 rockets (U235 3.0, TC 0.7, LP 0.4, SC 0.3, CF 0.3); with PU 28.1 / 11.8
+		  vanilla with prod 3 (100%): 0.67 rockets
+		pressure <= 600, so only on Aquilo or in space
 	
 		Ingredients for 1389 PU: (25% prod)
 		EC: 26667 -> 133/13.3

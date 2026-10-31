@@ -20,7 +20,7 @@ local function satellite()
 			subgroup = "intermediate-product",
 			order = "d[rocket-parts]-eb[satellite]",
 			stack_size = 5,
-			weight = 240 * kg, -- 4 / rocket
+			weight = 200 * kg, -- 5 / rocket
 			inventory_move_sound = item_sounds.electric_small_inventory_move,
 			pick_sound = item_sounds.electric_small_inventory_pickup,
 			drop_sound = item_sounds.electric_small_inventory_move,
@@ -47,6 +47,14 @@ end
 
 ---- Space science
 local function science()
+	-- cost per pack (12.5 avg per craft), Nauvis raw cost (see nauvis.lua) + asteroid chunks on the platform, early / data_updates (foundry/EM, prod 3):
+	--   1 launch satellites (240 kg, 20 rockets per 1000 packs early, 15.4 data_updates):  771 / 110 ore
+	--   2 launch satellite ingredients (117 kg, 9.3 / 7.2 rockets per 1000):       377 / 56 ore
+	--   3 craft all but rocket fuel on platform (0.8 / 0.6 rockets per 1000):        30.4 / 4.5 ore + 2.93 / 0.68 chunks
+	--   4 craft all on platform (rocket fuel via coal synthesis + liquefaction):      4.07 / 0.94 chunks
+	--   the rocket is 84-96% of the ore cost in 1 and 2; carbon and water add 0.09 / 0.05 chunks to every route
+	--   oil from coal liquefaction makes 1-3 about 12% more expensive early, the same data_updates
+	--   asteroid productivity research not included; see tools/space_costs.py
 	meld(data.raw["recipe"]["space-science-pack"], {
 		categories = {"crafting-with-fluid"}, -- was crafting
 		energy_required = 11, -- was 15

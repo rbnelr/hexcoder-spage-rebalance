@@ -123,7 +123,7 @@ end
 
 ---- Deleted prototypes
 -- Deleting a prototype breaks other mods that reference it (prerequisites, unlocks), hiding a tech would make its dependents unreachable
--- so delete and fix up references in all technologies. Call these in a final() hook to catch references added by other mods
+-- so delete and fix up references in all technologies. Call these in a final_fixes() hook to catch references added by other mods
 
 -- Replace prerequisite old_name by new_names in all technologies
 ---@param old_name string

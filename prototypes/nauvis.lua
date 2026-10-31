@@ -6,11 +6,12 @@ local M = {}
 
 local function hard_intermediates()
 	-- raw cost: vanilla -> mod, ore/coal/stone 1, oil fluids 1/10, water 0, assemblers and furnaces without modules
-	-- late: same, plus foundry casting and EM plant wherever cheaper, prod 3 in every machine
+	-- machines: how much cheaper data_updates-game machines make it, vanilla and mod each against its own raw cost:
+	--   foundry casting and EM plant wherever cheaper, prod 3 in every machine
 	--   (vanilla foundry 90%, EM plant 100%, AM3 40% -> mod 30%, 65%, 30%); see tools/item_costs.py
 
 	-- raw cost 2 -> 2.5 (1.25x)
-	-- late (foundry/EM, prod 3) 0.28 -> 1.06 (3.82x)
+	-- machines: vanilla 2 -> 0.28 (7.2x), mod 2.5 -> 1.06 (2.4x)
 	meld(data.raw["recipe"]["iron-gear-wheel"], {
 		energy_required = 1.5, -- was 0.5
 		ingredients = meld.overwrite{
@@ -22,7 +23,7 @@ local function hard_intermediates()
 	})
 
 	-- raw cost 0.5 -> 0.75 (1.5x)
-	-- late (foundry/EM, prod 3) 0.069 -> 0.29 (4.17x)
+	-- machines: vanilla 0.5 -> 0.069 (7.2x), mod 0.75 -> 0.29 (2.6x)
 	meld(data.raw["recipe"]["copper-cable"], {
 		energy_required = 1, -- was 0.5
 		ingredients = meld.overwrite{
@@ -34,7 +35,7 @@ local function hard_intermediates()
 	})
 
 	-- raw cost 5 -> 6 (1.2x)
-	-- late (foundry/EM, prod 3) 0.83 -> 2.68 (3.22x)
+	-- machines: vanilla 5 -> 0.83 (6.0x), mod 6 -> 2.68 (2.2x)
 	meld(data.raw["recipe"]["steel-plate"], {
 		energy_required = 16,
 		ingredients = meld.overwrite{
@@ -44,7 +45,7 @@ local function hard_intermediates()
 	})
 
 	-- raw cost 9 -> 12 (1.33x)
-	-- late (foundry/EM, prod 3) 1.19 -> 4.26 (3.59x)
+	-- machines: vanilla 9 -> 1.19 (7.6x), mod 12 -> 4.26 (2.8x)
 	meld(data.raw["recipe"]["engine-unit"], {
 		energy_required = 12, -- was 10
 		ingredients = meld.overwrite{
@@ -59,7 +60,7 @@ local function hard_intermediates()
 	})
 
 	-- raw cost 15.5 -> 24.25 (1.56x)
-	-- late (foundry/EM, prod 3) 2.02 -> 7.08 (3.51x)
+	-- machines: vanilla 15.5 -> 2.02 (7.7x), mod 24.25 -> 7.08 (3.4x)
 	meld(data.raw["recipe"]["electric-engine-unit"], {
 		ingredients = meld.overwrite{
 			{ type = "item", name = "electronic-circuit", amount = 2 },
@@ -75,7 +76,7 @@ local function hard_intermediates()
 	-- explosives take petroleum, requiring oil production in space and potentially on gleba
 	-- TODO: test how expensive this is in space, how much coal for the petroleum with coal liquefaction
 	-- raw cost 1.25 -> 2.6 (2.08x)
-	-- late (foundry/EM, prod 3) 0.83 -> 1.96 (2.36x)
+	-- machines: vanilla 1.25 -> 0.83 (1.5x), mod 2.6 -> 1.96 (1.3x)
 	meld(data.raw["recipe"]["explosives"], {
 		ingredients = meld.overwrite{
 			{ type = "item", name = "coal", amount = 1 },
@@ -85,7 +86,7 @@ local function hard_intermediates()
 	})
 
 	-- raw cost 10 -> 17.25 (1.73x)
-	-- late (foundry/EM, prod 3) 1.53 -> 4.63 (3.02x)
+	-- machines: vanilla 10 -> 1.53 (6.5x), mod 17.25 -> 4.63 (3.7x)
 	meld(data.raw["recipe"]["advanced-circuit"], {
 		ingredients = meld.overwrite{
 			{ type = "item", name = "plastic-bar",    amount = 3 }, -- was 2
@@ -95,7 +96,7 @@ local function hard_intermediates()
 	})
 
 	-- raw cost 70.85 -> 132.47 (1.87x)
-	-- late (foundry/EM, prod 3) 4.19 -> 22.8 (5.44x)
+	-- machines: vanilla 70.85 -> 4.19 (16.9x), mod 132.47 -> 22.8 (5.8x)
 	meld(data.raw["recipe"]["processing-unit"], {
 		energy_required = 12, -- was 10
 		ingredients = meld.overwrite{
@@ -107,7 +108,7 @@ local function hard_intermediates()
 	
 	-- make vulcanus lubricant cost more extreme
 	-- raw cost 0.1 -> 0.133 (1.33x)
-	-- late (foundry/EM, prod 3) 0.077 -> 0.111 (1.44x)
+	-- machines: vanilla 0.1 -> 0.077 (1.3x), mod 0.133 -> 0.111 (1.2x)
 	meld(data.raw["recipe"]["lubricant"], {
 		energy_required = 4, -- was 1
 		ingredients = meld.overwrite{
@@ -120,8 +121,9 @@ local function hard_intermediates()
 	
 	-- nerf LDS in a complex way: 0.8 LDS per craft, 20% chance of 2-5 plastic back (0.7 avg)
 	-- raw cost 37.5 -> 48.06 (1.28x)
-	-- late (foundry/EM, prod 3) 9.27 -> 18.9 (2.04x), casting is the cheaper route
+	-- machines: vanilla 37.5 -> 9.27 (4.0x), mod 48.06 -> 18.9 (2.5x), casting is the cheaper route
 	meld(data.raw["recipe"]["low-density-structure"], {
+		main_product = "low-density-structure",
 		results = meld.overwrite{
 			{ type = "item", name = "low-density-structure", amount = 1, shared_probability={min=0,max=0.8} },
 			{ type = "item", name = "plastic-bar", amount_min = 2, amount_max = 5, shared_probability={min=0.8,max=1} },
@@ -145,7 +147,7 @@ local function science()
 	-- mostly stolen from Science Difficulty Overhaul: Harder Science Packs - Cubickman
 	
 	-- raw cost 3 -> 5.75 (1.92x)
-	-- late (foundry/EM, prod 3) 0.40 -> 1.97 (4.98x)
+	-- machines: vanilla 3 -> 0.40 (7.6x), mod 5.75 -> 1.97 (2.9x)
 	meld(data.raw["recipe"]["automation-science-pack"], {
 		energy_required = 6, -- was 5
 		ingredients = meld.overwrite{
@@ -153,9 +155,7 @@ local function science()
 			{ type = "item", name = "burner-inserter", amount = 1 } -- new, was 1 iron-gear-wheel
 		},
 	})
-
-	-- raw cost 8.5 -> 9.75 (1.15x)
-	-- late (foundry/EM, prod 3) 1.35 -> 3.88 (2.88x)
+	
 	meld(data.raw["recipe"]["long-handed-inserter"], {
 		ingredients = meld.overwrite{
 			{ type = "item", name = "inserter", amount = 1 },
@@ -164,7 +164,7 @@ local function science()
 		}
 	})
 	-- raw cost 7 -> 13.25 (1.89x)
-	-- late (foundry/EM, prod 3) 0.77 -> 4.29 (5.60x)
+	-- machines: vanilla 7 -> 0.77 (9.1x), mod 13.25 -> 4.29 (3.1x)
 	meld(data.raw["recipe"]["logistic-science-pack"], {
 		energy_required = 8, -- was 6
 		ingredients = meld.overwrite{
@@ -177,7 +177,7 @@ local function science()
 	})
 
 	-- raw cost 21.25 -> 48 (2.26x)
-	-- late (foundry/EM, prod 3) 10.7 -> 22.3 (2.09x)
+	-- machines: vanilla 21.25 -> 10.7 (2.0x), mod 48 -> 22.3 (2.2x)
 	meld(data.raw["recipe"]["military-science-pack"], {
 		energy_required = 14, -- was 10
 		ingredients = meld.overwrite{
@@ -190,23 +190,21 @@ local function science()
 		prerequisites = common.meld_add_or_assign{"gate"}
 	})
 
-	-- raw cost 24.75 -> 71.1 (2.87x)
-	-- late (foundry/EM, prod 3) 2.90 -> 19.3 (6.63x)
+	-- raw cost 24.75 -> 61.6 (2.49x)
+	-- machines: vanilla 24.75 -> 2.90 (8.5x), mod 61.6 -> 16.4 (3.8x)
 	-- pump is interesting, maybe a bit expensive?
 	meld(data.raw["recipe"]["chemical-science-pack"], {
 		energy_required = 28, -- was 24
 		ingredients = meld.overwrite{
-			{ type = "item", name = "battery",          amount = 3 }, -- new, was 2 engine-unit
-			{ type = "item", name = "pump",             amount = 3 }, -- new, was 1 sulfur
+			{ type = "item", name = "pump",             amount = 2 }, -- new, was 2 engine-unit
+			{ type = "item", name = "battery",          amount = 3 }, -- new, was 1 sulfur
 			{ type = "item", name = "advanced-circuit", amount = 4 } -- was 3
 		},
 	})
 	meld(data.raw["technology"]["chemical-science-pack"], {
 		prerequisites = common.meld_add_or_assign{"battery"}
 	})
-
-	-- raw cost 120 -> 166.25 (1.39x)
-	-- late (foundry/EM, prod 3) 32.7 -> 66.6 (2.04x)
+	
 	meld(data.raw["recipe"]["electric-furnace"], {
 		ingredients = meld.overwrite{
 			{ type = "item", name = "steel-plate",      amount = 4 }, -- was 10, lowered to match steel going into steel-furnace
@@ -215,7 +213,7 @@ local function science()
 		},
 	})
 	-- raw cost 93.33 -> 157.81 (1.69x)
-	-- late (foundry/EM, prod 3) 16.8 -> 52.3 (3.12x)
+	-- machines: vanilla 93.33 -> 16.8 (5.6x), mod 157.81 -> 52.3 (3.0x)
 	meld(data.raw["recipe"]["production-science-pack"], {
 		energy_required = 28, -- was 21
 		ingredients = meld.overwrite{
@@ -228,9 +226,7 @@ local function science()
 			{ type = "item", name = "production-science-pack", amount = 4 } -- was 3
 		},
 	})
-
-	-- raw cost 305 -> 336.25 (1.10x)
-	-- late (foundry/EM, prod 3) 44.5 -> 98.4 (2.21x)
+	
 	meld(data.raw["recipe"]["beacon"], {
 		ingredients = meld.overwrite{
 			{ type = "item", name = "steel-plate",           amount = 4 }, -- was 10
@@ -240,7 +236,7 @@ local function science()
 		},
 	})
 	-- raw cost 97.67 -> 201.34 (2.06x)
-	-- late (foundry/EM, prod 3) 9.85 -> 40.1 (4.06x)
+	-- machines: vanilla 97.67 -> 9.85 (9.9x), mod 201.34 -> 40.1 (5.0x)
 	-- beacon can be made in EM plant!
 	meld(data.raw["recipe"]["utility-science-pack"], {
 		energy_required = 36, -- was 21

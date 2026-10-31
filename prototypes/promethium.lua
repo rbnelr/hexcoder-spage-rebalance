@@ -56,30 +56,24 @@ local function science()
 		energy_required = 14, -- was 5
 		ingredients = meld.overwrite{
 			{type="item", name="promethium-asteroid-chunk", amount=50}, -- was 25
-			{type="item", name="quantum-processor", amount=15}, -- was 1
-			{type="item", name="biter-egg", amount=24}, -- was 10
-			{type="item", name="raw-fish", amount=15}, -- new
-			{type="item", name="uranium-235", amount=1}, -- new
-			-- If done gleba overhaul, make this require warm water? and make it output cold dirty water
-			-- TODO: how does fluid temperature work?
-			--> fluid network equializes to the average
-			--> can't actually warm anything up, need to create recepies for that?
-			--> but how would we even balance temperatures if we can't measure them? -> add temperature reading circuit output to tanks?
+			{type="item", name="quantum-processor", amount=10}, -- was 1
+			{type="item", name="biter-egg", amount=12}, -- was 10
+			{type="item", name="raw-fish", amount=8}, -- new
 			{type = "fluid", name = "water", amount = 1400, fluidbox_multiplier=2, ignored_by_stats=1350}, -- new
 		},
 		results = meld.overwrite{
-			{type="item", name="promethium-science-pack", amount=10, shared_probability={min=0, max=0.75}}, -- was 10 (100%)
-			{type="item", name="raw-fish", amount=100, shared_probability={min=0.75,max=0.85}, percent_spoiled=0.9, ignored_by_productivity=100},
-			{type="item", name="spoilage", amount=100, shared_probability={min=0.85,max=1}, ignored_by_productivity=100},
-			{type="item", name="quantum-processor", amount_min=3, amount_max=10, ignored_by_productivity=10},
-			{type="item", name="uranium-238", amount=1},
-			{type="fluid", name="water", amount=1350, ignored_by_productivity=1350},
+			{type="item", name="promethium-science-pack", amount=10}, -- was 10
+			--{type="item", name="raw-fish", amount=20, shared_probability={min=0.75,max=0.85}, percent_spoiled=0.9, ignored_by_productivity=20},
+			--{type="item", name="spoilage", amount=20, shared_probability={min=0.85,max=1}, ignored_by_productivity=20},
+			--{type="item", name="quantum-processor", amount_min=7, amount_max=10, shared_probability={min=0.75, max=1}, ignored_by_productivity=10},
+			{type="fluid", name="water", amount=1350, ignored_by_productivity=1350}, -- TODO: gleba dirty water?
 		},
 	})
 	--[[
 		1000 Sci: 5 Stacks (assuming 100 crafts, ingnoring 75% as with prod it's actually like 1400)
-		Eggs: 2400  24/5
-		QP: 850     106/13.3 (15 in, avg 6.5 back)
+		Eggs: 1200  12/2.4
+		Fish: 800   40/2.7
+		QP: 1000    125/15.6
 	
 	]]
 
