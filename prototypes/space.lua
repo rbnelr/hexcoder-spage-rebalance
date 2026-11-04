@@ -7,29 +7,33 @@ local M = {}
 
 ---- Asteroid spawns
 local function asteroid_spawns()
-	local NAUVIS_CHUNKS = 0.05*2.0 -- was 0.0125 metallic, 0.0083 carbonic, 0.0042 oxide
-	local NAUVIS_CHUNKS_SPEED = 0.0266667*1.2 -- was 1/60 = 0.0167
-	local NAUVIS_SMALL = 0.05*0.3 -- new, vanilla has no asteroids around nauvis
-	local NAUVIS_SMALL_SPEED = 0.0266667*0.75
+	local nauvis = data.raw["planet"]["nauvis"]
+	-- probability was 0.0125 metallic, 0.0083 carbonic, 0.0042 oxide
+	-- speed was 1/60 = 0.0167
+	local metal = nauvis.asteroid_spawn_definitions[1]
+	local carbon = nauvis.asteroid_spawn_definitions[2]
+	local ice = nauvis.asteroid_spawn_definitions[3]
+
+	local CHUNKS = 1.6
+	local CHUNKS_SPEED = 1.2
+	local SMALL = 0.8
+	local SMALL_SPEED = 0.6
 
 	-- buff the trickle of asteroids around nauvis to make stationary platforms more viable
-	meld(data.raw["planet"]["nauvis"], {
-		--asteroid_spawn_definitions = meld.invoke(function(list)
-		--	for _,def in pairs(list) do
-		--		def.probability = def.probability * 4
-		--		def.speed = def.speed * 1.6
-		--	end
-		--	return list
-		--end)
-		asteroid_spawn_definitions = meld.overwrite{
-			{ type="asteroid-chunk", asteroid="metallic-asteroid-chunk", probability=NAUVIS_CHUNKS, speed=NAUVIS_CHUNKS_SPEED, angle_when_stopped=1 },
-			{ type="asteroid-chunk", asteroid="carbonic-asteroid-chunk", probability=NAUVIS_CHUNKS, speed=NAUVIS_CHUNKS_SPEED, angle_when_stopped=1 },
-			{ type="asteroid-chunk", asteroid="oxide-asteroid-chunk"   , probability=NAUVIS_CHUNKS, speed=NAUVIS_CHUNKS_SPEED, angle_when_stopped=1 },
-			{ type="entity", asteroid="small-metallic-asteroid", probability=NAUVIS_SMALL, speed=NAUVIS_SMALL_SPEED, angle_when_stopped=1 },
-			{ type="entity", asteroid="small-carbonic-asteroid", probability=NAUVIS_SMALL, speed=NAUVIS_SMALL_SPEED, angle_when_stopped=1 },
-			{ type="entity", asteroid="small-oxide-asteroid"   , probability=NAUVIS_SMALL, speed=NAUVIS_SMALL_SPEED, angle_when_stopped=1 },
-		}
-	})
+	nauvis.asteroid_spawn_definitions = {
+		{ type="asteroid-chunk", asteroid="metallic-asteroid-chunk",
+			probability=metal.probability*CHUNKS, speed=metal.speed*CHUNKS_SPEED, angle_when_stopped=1 },
+		{ type="asteroid-chunk", asteroid="carbonic-asteroid-chunk",
+			probability=carbon.probability*CHUNKS, speed=carbon.speed*CHUNKS_SPEED, angle_when_stopped=1 },
+		{ type="asteroid-chunk", asteroid="oxide-asteroid-chunk"   ,
+			probability=ice.probability*CHUNKS, speed=ice.speed*CHUNKS_SPEED, angle_when_stopped=1 },
+		{ type="entity", asteroid="small-metallic-asteroid",
+			probability=metal.probability*SMALL, speed=metal.speed*CHUNKS_SPEED, angle_when_stopped=1 },
+		{ type="entity", asteroid="small-carbonic-asteroid",
+			probability=carbon.probability*SMALL, speed=carbon.speed*CHUNKS_SPEED, angle_when_stopped=1 },
+		{ type="entity", asteroid="small-oxide-asteroid"   ,
+			probability=ice.probability*SMALL, speed=ice.speed*CHUNKS_SPEED, angle_when_stopped=1 },
+	}
 	-- TODO: adjust other planets?
 	-- esp. aquilo
 end

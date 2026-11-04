@@ -12,6 +12,12 @@ local function satellite()
 
 	local item_sounds = require("__base__.prototypes.item_sounds")
 
+	-- make sending up ingredients cheaper/competitive with sending up solar panels
+	-- TODO: check numbers
+	meld(data.raw["item"]["solar-panel"], {
+		weight = 8000, -- 125 / rocket, was 20000 (50 / rocket)
+	})
+
 	data:extend({
 		{
 			type = "item",

@@ -91,7 +91,8 @@ local function hard_intermediates()
 		ingredients = meld.overwrite{
 			{ type = "item", name = "plastic-bar",    amount = 3 }, -- was 2
 			{ type = "item", name = "copper-cable",   amount = 4 },
-			{ type = "item", name = "electronic-circuit", amount = 3 }, -- was 2
+			--{ type = "item", name = "electronic-circuit", amount = 3 }, -- was 2
+			{ type = "item", name = "electronic-circuit", amount = 2 }, -- was 2
 		},
 	})
 
@@ -193,12 +194,13 @@ local function science()
 	-- raw cost 24.75 -> 61.6 (2.49x)
 	-- machines: vanilla 24.75 -> 2.90 (8.5x), mod 61.6 -> 16.4 (3.8x)
 	-- pump is interesting, maybe a bit expensive?
+	-- TODO: update numbers
 	meld(data.raw["recipe"]["chemical-science-pack"], {
 		energy_required = 28, -- was 24
 		ingredients = meld.overwrite{
 			{ type = "item", name = "pump",             amount = 2 }, -- new, was 2 engine-unit
 			{ type = "item", name = "battery",          amount = 3 }, -- new, was 1 sulfur
-			{ type = "item", name = "advanced-circuit", amount = 4 } -- was 3
+			{ type = "item", name = "advanced-circuit", amount = 3 } -- was 3
 		},
 	})
 	meld(data.raw["technology"]["chemical-science-pack"], {
@@ -212,12 +214,32 @@ local function science()
 			{ type = "item", name = "steel-furnace",    amount = 1 }, -- new, was 10 stone-brick
 		},
 	})
+
+	-- less steel, more stone
+	-- 2 sticks on 1 steel sleeper
+	-- why not make rails take concrete? concrete sleepers are more common than steel
+	-- I guess rails are unlocked too early to move concrete unlock there?
+	-- concrete is easy to make though, alternative wooden sleeper recipe would be realistic, but I consider it recipe bloat
+	-- lategame wood farm making purple sci cheaper is interesting though
+	meld(data.raw["recipe"]["rail"], {
+		ingredients = meld.overwrite{
+			{ type = "item", name = "steel-plate",   amount = 1 }, -- was 1
+			{ type = "item", name = "iron-stick",   amount = 2 }, -- was 1
+			{ type = "item", name = "stone",   amount = 3 }, -- was 1
+		},
+		results = meld.overwrite{
+			{ type = "item", name = "rail", amount = 4 } -- was 2
+		},
+	})
+
 	-- raw cost 93.33 -> 157.81 (1.69x)
 	-- machines: vanilla 93.33 -> 16.8 (5.6x), mod 157.81 -> 52.3 (3.0x)
+	-- less circuits, more stone
+	-- TODO: update numbers
 	meld(data.raw["recipe"]["production-science-pack"], {
 		energy_required = 28, -- was 21
 		ingredients = meld.overwrite{
-			{ type = "item", name = "rail",                  amount = 45 }, -- was 30
+			{ type = "item", name = "rail",                  amount = 50 }, -- was 30
 			{ type = "item", name = "electric-furnace",      amount = 2 }, -- was 1
 			{ type = "item", name = "hazard-concrete",       amount = 25 }, -- new (was assembler 2 in the other mod)
 			{ type = "item", name = "productivity-module",   amount = 1 }

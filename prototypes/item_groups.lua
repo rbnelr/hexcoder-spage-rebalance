@@ -10,6 +10,7 @@ function M.data_updates()
 		data:extend{{
 			type = "item-group",
 			name = name.."-group",
+			localised_name = {"", {"space-location-name."..name}},
 			icon = data.raw["planet"][name].icon,
 			icon_size = 64,
 			order = data.raw["item-group"]["intermediate-products"].order.."-b["..name.."]",
