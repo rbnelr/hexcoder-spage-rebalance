@@ -10,4 +10,6 @@ const.SETTING_SCALES = const.MOD_NAME.."-scales"
 const.SETTING_LAUNCH_POLLUTION = const.MOD_NAME.."-rocket-launch-pollution-amount"
 const.SETTING_HARD_SCIENCE = const.MOD_NAME.."-hard-science"
 
+const.LAUNCHED_SAT = const.MOD_NAME.."-launched-satellite"
+
 return const

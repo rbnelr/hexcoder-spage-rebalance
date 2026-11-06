@@ -1,5 +1,8 @@
 local const = require("const")
 
+---@type ModStorage
+storage = storage
+
 -- Trigger pollution on rocket launch
 -- TODO: reduce this with rocket part efficiency research?
 -- Stolen from  dirty-launches  -  Blooha77
@@ -13,6 +16,47 @@ script.on_event(defines.events.on_rocket_launched, function(event)
 		silo.surface.pollute(silo.position, pollution, silo.prototype)
 	end
 end)
+
+-- only works if tile.empty-space.destroys_dropped_items = true
+--script.on_event(const.MOD_NAME.."-on-satellite-launch", function(event)
+--	game.print("on-satellite-launch: ".. serpent.block(event))
+--end)
+
+local timeout = nil
+
+-- factorio libs don't have this?
+---@param vec Vector
+---@return Vector
+---@return number
+local function normalized_vector(vec)
+	local x = vec.x or vec[1]
+	local y = vec.y or vec[2]
+	local length = math.sqrt(x*x + y*y)
+	return { x=x/length, y=y/length }, length
+end
+
+script.on_nth_tick(10, function(event)
+	for _,platform in pairs(game.planets["nauvis"].get_space_platforms("player")) do
+		for _,ejected in pairs(platform.ejected_items) do
+			if ejected.item.name.name == "satellite" and timeout == nil then
+				game.print("")
+				local asteroid = platform.surface.create_entity{type="asteroid", name=const.LAUNCHED_SAT, position=ejected.position}
+				
+				local dir, speed = normalized_vector(ejected.movement)
+				asteroid.set_movement(dir, speed)
+				
+				timeout = 120
+			end
+		end
+	end
+	if timeout ~= nil then
+		timeout = timeout - 10
+		if timeout <= 0 then timeout = nil end
+	end
+end)
+
+---@class ModStorage
+-----@field ejected_satellites table<>
 
 --[[
 local min, max

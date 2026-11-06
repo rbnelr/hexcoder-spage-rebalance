@@ -2,7 +2,7 @@
 -- Standalone: only references vanilla prototypes, could become its own mod
 local const = require("const")
 local meld = require("__core__.lualib.meld")
-local common = require("prototypes/common")
+local common = require("prototypes.common")
 
 local M = {}
 
@@ -14,26 +14,57 @@ local function satellite()
 
 	-- make sending up ingredients cheaper/competitive with sending up solar panels
 	-- TODO: check numbers
-	meld(data.raw["item"]["solar-panel"], {
-		weight = 8000, -- 125 / rocket, was 20000 (50 / rocket)
+	-- actually now sending up circuits makes no sense
+	--meld(data.raw["item"]["solar-panel"], {
+	--	weight = 8000, -- 125 / rocket, was 20000 (50 / rocket)
+	--})
+	-- make radar heavier to encourage orbital production
+	meld(data.raw["item"]["radar"], {
+		weight = 40000, -- 25 / rocket, was 20000 (50 / rocket)
 	})
-
-	data:extend({
+	-- chosen numbers such that making more and more parts in orbit gets cheaper and cheaper in terms of rocket launches
+	-- except green circuits, which are not worth to ship copper for, instead wait until advanced metallic crushing
+	
+	-- would be needed for destroyed_by_dropping_trigger
+	--meld(data.raw["tile"]["empty-space"], {
+	--	destroys_dropped_items = true,
+	--})
+	
+	data:extend{
+		--{
+		--	type = "custom-event",
+		--	name = const.MOD_NAME.."-on-satellite-launch"
+		--},
 		{
 			type = "item",
 			name = "satellite",
-			icon = const.MOD_DIR.."/graphics/icons/satellite.png",
+			icons = {{
+				icon=const.MOD_DIR.."/graphics/icons/satellite.png",
+				scale = 0.5*1.25, -- was 0.5, make it larger on belt
+			}},
 			subgroup = "intermediate-product",
 			order = "d[rocket-parts]-eb[satellite]",
-			stack_size = 5,
-			weight = 200 * kg, -- 5 / rocket
+			stack_size = 1,
+			weight = 333 * kg, -- 3 / rocket, shipping parts is cheaper
 			inventory_move_sound = item_sounds.electric_small_inventory_move,
 			pick_sound = item_sounds.electric_small_inventory_pickup,
 			drop_sound = item_sounds.electric_small_inventory_move,
+			--destroyed_by_dropping_trigger = {
+			--	type="direct",
+			--	action_delivery = {
+			--		type="instant",
+			--		target_effects={
+			--			type="script",
+			--			effect_id="satellite-launch",
+			--			custom_event=const.MOD_NAME.."-on-satellite-launch",
+			--		}
+			--	}
+			--}
 		},
 		{
 			type = "recipe",
 			name = "satellite",
+			icon=const.MOD_DIR.."/graphics/icons/satellite.png",
 			subgroup = "intermediate-product",
 			order = "d[rocket-parts]-eb[satellite]",
 			enabled = false,
@@ -42,13 +73,35 @@ local function satellite()
 			categories = { "advanced-crafting", --[["electromagnetics"]] },
 			ingredients = {
 				{type = "item", name = "steel-plate", amount = 2},
-				{type = "item", name = "solar-panel", amount = 4},
+				{type = "item", name = "solar-panel", amount = 8},
 				{type = "item", name = "radar", amount = 1},
 				{type = "item", name = "rocket-fuel", amount = 1},
 			},
 			results = {{type = "item", name = "satellite", amount = 1}}
 		},
-	})
+		meld(table.deepcopy(data.raw["asteroid"]["small-metallic-asteroid"]), {
+			name=const.LAUNCHED_SAT,
+			dying_trigger_effect=common.meld_remove{{type="create-asteroid-chunk"}},
+			resistances = {
+				{type="physical", percent=0},
+				{type="explosion", percent=50},
+				{type="fire", percent=100},
+				{type="laser", percent=20},
+				{type="electric", percent=0}, -- change for flavor
+			},
+			is_military_target = false,
+			
+			icon = const.MOD_DIR.."/graphics/icons/satellite.png",
+			graphics_set = {
+				rotation_speed = 0.0012*0.25,
+				variations = {{
+					color_texture = { filename=const.MOD_DIR.."/graphics/icons/satellite.png", size=64, scale=0.5*3 },
+					normal_map = data.raw["asteroid"]["small-metallic-asteroid"].graphics_set.variations[1].normal_map,
+					roughness_map = data.raw["asteroid"]["small-metallic-asteroid"].graphics_set.variations[1].roughness_map,
+				}}
+			}
+		})
+	}
 end
 
 ---- Space science
