@@ -1,8 +1,9 @@
--- Satellite and new space science pack recipe, ice-melting unlocked by space science
--- Standalone: only references vanilla prototypes, could become its own mod
+-- Satellite, film capsule and new space science pack recipe, ice-melting unlocked by space science
+-- Standalone: only references vanilla prototypes, could become its own mod (together with control/space_science.lua)
 local const = require("const")
 local meld = require("__core__.lualib.meld")
 local common = require("prototypes.common")
+require("__core__.lualib.sound-util") -- sound_variations
 
 local M = {}
 
@@ -79,9 +80,48 @@ local function satellite()
 			},
 			results = {{type = "item", name = "satellite", amount = 1}}
 		},
-		meld(table.deepcopy(data.raw["asteroid"]["small-metallic-asteroid"]), {
-			name=const.LAUNCHED_SAT,
-			dying_trigger_effect=common.meld_remove{{type="create-asteroid-chunk"}},
+	}
+end
+
+---- Launched satellite
+-- Thrown satellites become this asteroid (see control/space_science.lua)
+-- const.LAUNCHED_SAT is what gets spawned, the others are test variants to place in the editor and compare
+local function launched_satellite()
+	local icon = const.MOD_DIR.."/graphics/icons/satellite.png"
+	-- the icon upscaled 4x, the 64 px texels showed as blocks
+	local colour = const.MOD_DIR.."/graphics/entity/satellite/satellite-colour.png"
+	local size = 256
+	local scale = 0.25 -- 2 tiles
+	local shift = {0.1, -0.1} -- tiles, towards the solar panel, to cover the ejected item better
+
+	local function satellite_asteroid(suffix, label, graphics_set)
+		if graphics_set ~= nil then
+			graphics_set.rotation_speed = graphics_set.rotation_speed or 0.0012*0.25
+		end
+		-- was asteroid explosion and chunks. A satellite is made of a radar and solar panels: radar explosion for the flash, metal and sound
+		local crash_effects = {
+			{type="create-explosion", entity_name="radar-explosion"},
+			{ -- on top of the collision damage, which is the same as a small asteroid
+				type = "nested-result",
+				action = {
+					type = "area",
+					radius = 2.5,
+					action_delivery = {
+						type = "instant",
+						target_effects = {{type="damage", damage={amount=60, type="explosion"}}},
+					},
+				},
+			},
+		}
+		-- only the shards and glass of the solar panel explosion, its sound is the same as the radar's and would play twice
+		for _,effect in pairs(data.raw["explosion"]["solar-panel-explosion"].created_effect.action_delivery.target_effects) do
+			table.insert(crash_effects, table.deepcopy(effect))
+		end
+
+		return meld(table.deepcopy(data.raw["asteroid"]["small-metallic-asteroid"]), {
+			name = const.LAUNCHED_SAT..suffix,
+			localised_name = {"", "Launched satellite ("..label..")"},
+			dying_trigger_effect = meld.overwrite(crash_effects),
 			resistances = {
 				{type="physical", percent=0},
 				{type="explosion", percent=50},
@@ -90,40 +130,155 @@ local function satellite()
 				{type="electric", percent=0}, -- change for flavor
 			},
 			is_military_target = false,
-			
-			icon = const.MOD_DIR.."/graphics/icons/satellite.png",
-			graphics_set = {
-				rotation_speed = 0.0012*0.25,
-				variations = {{
-					color_texture = { filename=const.MOD_DIR.."/graphics/icons/satellite.png", size=64, scale=0.5*3 },
-					normal_map = data.raw["asteroid"]["small-metallic-asteroid"].graphics_set.variations[1].normal_map,
-					roughness_map = data.raw["asteroid"]["small-metallic-asteroid"].graphics_set.variations[1].roughness_map,
-				}}
-			}
+
+			icon = icon,
+			graphics_set = graphics_set or meld.delete(),
 		})
+	end
+	-- overwrite or the rock variations stay in the list after the first one
+	local function maps(name)
+		local path = const.MOD_DIR.."/graphics/entity/satellite/satellite-"..name
+		return meld.overwrite{{
+			color_texture = { filename=colour, size=size, scale=scale, shift=shift },
+			normal_map = { filename=path.."-normal.png", premul_alpha=false, size=size, scale=scale, shift=shift },
+			roughness_map = { filename=path.."-roughness.png", premul_alpha=false, size=size, scale=scale, shift=shift },
+			shadow_shift = {0.5, 0.5},
+		}}
+	end
+
+	local function thruster_animation(name, file)
+		return {
+			type = "animation",
+			name = name,
+			filename = "__base__/graphics/entity/cargo-pod/"..file..".png",
+			width = 172,
+			height = 256,
+			line_length = 5,
+			frame_count = 10,
+			scale = 0.25,
+			draw_as_glow = true,
+			blend_mode = "additive",
+			flags = {"linear-minification", "linear-magnification"},
+		}
+	end
+
+	data:extend{
+		-- no graphics: asteroids render at a random start rotation and entity.orientation has no effect, control/space_science.lua draws SATELLITE_SPRITE instead
+		satellite_asteroid("", "no graphics"),
+		{
+			type = "sprite",
+			name = const.SATELLITE_SPRITE,
+			filename = colour,
+			size = size,
+			scale = scale,
+			shift = shift,
+			flags = {"linear-minification", "linear-magnification"},
+		},
+		satellite_asteroid("-bevel", "bevel maps", { variations = maps("bevel") }),
+		satellite_asteroid("-detail", "detail maps", { variations = maps("detail") }),
+		-- the icon has baked lighting, try to show it as is by replacing the lights with full ambient
+		satellite_asteroid("-unlit", "flat maps, unlit", {
+			variations = maps("flat"),
+			lights = meld.delete(),
+			ambient_light = meld.overwrite{1, 1, 1},
+			brightness = 1,
+		}),
+		-- graphics_set.sprite instead of variations, no maps needed if this works
+		satellite_asteroid("-sprite", "sprite", {
+			variations = meld.delete(),
+			sprite = { filename=colour, size=size, scale=scale, shift=shift },
+		}),
+		-- same as vanilla cargo pod thruster_flames_start and thruster_flames_loop (base/prototypes/entity/cargo-pod-catalogue.lua), without the shift
+		-- animation_speed is set when drawing, draw_animation defaults to 1 per tick
+		thruster_animation(const.SATELLITE_THRUSTER_IGNITION, "pod-thruster-ignition"),
+		thruster_animation(const.SATELLITE_THRUSTER, "pod-thruster-loop"),
+		-- same as vanilla pod_thruster_burst (base/prototypes/entity/entities.lua)
+		{
+			type = "sound",
+			name = const.SATELLITE_THRUSTER_SOUND,
+			variations = sound_variations("__base__/sound/procession/cargo-pod-thruster-burst", 5, 0.6),
+			aggregation = {max_count = 2, remove = true, count_already_playing = true},
+		},
+	}
+	
+	-- we have to hide ejected item with satellite on top, so make this faster, likely nobody cares
+	data.raw["utility-constants"]["default"].ejected_item_lifetime = 12 * 60 -- was 1500 (25sec)
+	data.raw["utility-constants"]["default"].ejected_item_speed = 5 * 1/256 -- was 0.005
+	data.raw["utility-constants"]["default"].ejected_item_direction_variation = 0.04 -- was 0.05
+end
+
+---- Film capsules
+-- Planned: launching a satellite makes film capsules drift past the platform as asteroid chunks. Not spawned yet, prototypes commented out
+-- Theme: Corona spy satellites dropped film canisters that aircraft caught in mid-air, here collector arms catch them
+local function film_capsule()
+	local item_sounds = require("__base__.prototypes.item_sounds")
+	local dir = const.MOD_DIR.."/graphics/entity/film-capsule/film-capsule-"
+	local icon = const.MOD_DIR.."/graphics/icons/film-capsule.png"
+
+	local variations = {}
+	for i=1,4 do
+		local function map(kind, premul_alpha)
+			return { filename=dir..kind.."-0"..i..".png", premul_alpha=premul_alpha, size=64, scale=0.5 }
+		end
+		variations[i] = {
+			color_texture = map("colour"),
+			normal_map = map("normal", false),
+			roughness_map = map("roughness", false),
+			shadow_shift = {0.25, 0.25},
+		}
+	end
+
+	data:extend{
+		-- mirrors metallic-asteroid-chunk, without the rock particles and explosion
+		--{
+		--	type = "asteroid-chunk",
+		--	name = const.FILM_CAPSULE,
+		--	localised_description = {"item-description."..const.FILM_CAPSULE},
+		--	icon = icon,
+		--	subgroup = "space-material",
+		--	order = "e[film-capsule]-a[chunk]",
+		--	minable = { mining_time = 0.2, result = const.FILM_CAPSULE },
+		--	graphics_set = meld(table.deepcopy(data.raw["asteroid-chunk"]["metallic-asteroid-chunk"].graphics_set), {
+		--		variations = meld.overwrite(variations),
+		--	}),
+		--},
+		--{
+		--	type = "item",
+		--	name = const.FILM_CAPSULE,
+		--	icon = icon,
+		--	subgroup = "space-material",
+		--	order = "e[film-capsule]-b[item]",
+		--	stack_size = 1,
+		--	weight = 100 * kg,
+		--	inventory_move_sound = item_sounds.electric_small_inventory_move,
+		--	pick_sound = item_sounds.electric_small_inventory_pickup,
+		--	drop_sound = item_sounds.electric_small_inventory_move,
+		--},
 	}
 end
 
 ---- Space science
 local function science()
-	-- cost per pack (12.5 avg per craft), Nauvis raw cost (see nauvis.lua) + asteroid chunks on the platform, early / data_updates (foundry/EM, prod 3):
-	--   1 launch satellites (240 kg, 20 rockets per 1000 packs early, 15.4 data_updates):  771 / 110 ore
-	--   2 launch satellite ingredients (117 kg, 9.3 / 7.2 rockets per 1000):       377 / 56 ore
-	--   3 craft all but rocket fuel on platform (0.8 / 0.6 rockets per 1000):        30.4 / 4.5 ore + 2.93 / 0.68 chunks
-	--   4 craft all on platform (rocket fuel via coal synthesis + liquefaction):      4.07 / 0.94 chunks
-	--   the rocket is 84-96% of the ore cost in 1 and 2; carbon and water add 0.09 / 0.05 chunks to every route
-	--   oil from coal liquefaction makes 1-3 about 12% more expensive early, the same data_updates
+	-- Uses the satellite directly until film capsules exist
+	-- TODO: redo, these numbers are for the earlier plan of 4 capsules per satellite and 3 packs per capsule (12 packs per satellite, all caught)
+	-- cost per pack, Nauvis raw cost (see nauvis.lua) + asteroid chunks on the platform, early / data_updates (foundry/EM, prod 3):
+	--   1 launch satellites (333 kg, 27.8 rockets per 1000 packs early, 21.4 data_updates):  1015 / 154 ore
+	--   2 launch satellite ingredients (217 kg, 18.1 / 13.9 rockets per 1000):       681 / 106 ore
+	--   3 craft all but rocket fuel on platform (0.8 / 0.6 rockets per 1000):        29.5 / 4.6 ore + 5.71 / 1.29 chunks
+	--   4 craft all on platform (rocket fuel via coal synthesis + liquefaction):      6.90 / 1.56 chunks
+	--   the rocket is 84-94% of the ore cost in 1 and 2; carbon and water add 0.08 / 0.04 chunks to every route
+	--   oil from coal liquefaction makes 1-3 about 13% more expensive early, the same data_updates
 	--   asteroid productivity research not included; see tools/space_costs.py
 	meld(data.raw["recipe"]["space-science-pack"], {
 		categories = {"crafting-with-fluid"}, -- was crafting
 		energy_required = 11, -- was 15
 		ingredients = meld.overwrite{
-			{type = "item", name = "satellite", amount = 1}, -- new
-			{type = "item", name = "carbon", amount = 5}, -- was 1 (and 2 iron-plate, 1 ice)
-			{type = "fluid", name = "water", amount = 80} -- new
+			{type = "item", name = "satellite", amount = 1}, -- new, was 2 iron-plate
+			{type = "item", name = "carbon", amount = 1}, -- was 1
+			{type = "fluid", name = "water", amount = 20} -- new, was 1 ice
 		},
 		results = meld.overwrite{
-			{type = "item", name = "space-science-pack", amount_min=0, amount_max=25} -- avg 12.5, was 5
+			{type = "item", name = "space-science-pack", amount = 3} -- was 5
 		}
 	})
 end
@@ -143,6 +298,8 @@ end
 
 function M.data()
 	satellite()
+	launched_satellite()
+	--film_capsule()
 	science()
 	techs()
 end

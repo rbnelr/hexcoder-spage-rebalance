@@ -11,5 +11,10 @@ const.SETTING_LAUNCH_POLLUTION = const.MOD_NAME.."-rocket-launch-pollution-amoun
 const.SETTING_HARD_SCIENCE = const.MOD_NAME.."-hard-science"
 
 const.LAUNCHED_SAT = const.MOD_NAME.."-launched-satellite"
+const.SATELLITE_THRUSTER = const.MOD_NAME.."-satellite-thruster"
+const.SATELLITE_THRUSTER_IGNITION = const.MOD_NAME.."-satellite-thruster-ignition"
+const.SATELLITE_THRUSTER_SOUND = const.MOD_NAME.."-satellite-thruster-sound"
+const.SATELLITE_SPRITE = const.MOD_NAME.."-satellite"
+const.FILM_CAPSULE = const.MOD_NAME.."-film-capsule"
 
 return const
