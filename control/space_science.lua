@@ -17,16 +17,21 @@ local M = {}
 ---@field target_orientation RealOrientation of the sprite in the end
 ---@field angular_velocity number rotations/tick, starts as a random drift
 ---@field rendering LuaRenderObject
+---@field glow LuaRenderObject? the beacon, separate so it can be additive
 ---@field ignition LuaRenderObject? set once the thruster fired
 ---@field vx number? tiles/tick, set once the thruster fired
 ---@field vy number?
 
--- launch detection and all movement/rotation updates
-M.POLL_TICKS = 1
+-- Reading ejected_items for every platform is the expensive part, so launches are detected less often than satellites get updated
+-- launch() places a late satellite where the item is by now
+M.LAUNCH_POLL_TICKS = 15
+local UPDATE_TICKS = 2 -- on_tick
+local THRUST_UPDATE_TICKS = 12 -- the engine moves it smoothly between these, the small speed steps do not show
 local SATELLITE_ITEM = "satellite"
 
 -- orientation the dish points to in the graphics, this is the front of the satellite
 local SPRITE_FRONT = 0.36
+local GLOW_BLINK_TICKS = 30 -- beacon on and off time, same as game alerts
 local FINAL_ROT_VARIATION = 35/360 -- rotations, +- front from the throw direction after the turn
 local INITIAL_ROT_VARIATION = 5/360 -- rotations, +- at launch
 local MAX_DRIFT = 4/360/60 -- rotations/tick, slow random rotation until the turn starts
@@ -36,8 +41,8 @@ local TURN_MAX_SPEED = 360/360/60 -- rotations/tick
 local TURN_ACCEL = 14/360/3600 -- rotations/tick^2, 1 s to reach the max speed
 local TURN_BRAKE_MARGIN = 0.9
 local THRUST_ACCEL = 0.00025 -- tiles/tick^2
-local FLAME_OFFSET = 1.5 -- tiles behind the center
-local FLAME_SCALE = 0.6
+local FLAME_OFFSET = 1.4 -- tiles behind the center
+local FLAME_SCALE = 0.7
 local FLAME_ANIMATION_SPEED = 0.5 -- frames/tick, same as vanilla
 local FLAME_FRAMES = 10
 local IGNITION_TICKS = FLAME_FRAMES / FLAME_ANIMATION_SPEED
@@ -113,10 +118,11 @@ end
 -- Speeds up, slows down in time to stop on target without overshooting. Starts from the drift, so one drifting the wrong way has to stop first
 ---@param sat EjectedSat
 local function update_turn(sat, tick)
-	local dt = M.POLL_TICKS
+	local dt = UPDATE_TICKS
 	if tick < sat.thrust_tick - TURN_LEAD_TICKS then
 		sat.orientation = sat.orientation + sat.angular_velocity * dt
 		sat.rendering.orientation = sat.orientation % 1
+		if sat.glow then sat.glow.orientation = sat.orientation % 1 end
 		return
 	end
 	if sat.orientation == sat.target_orientation then return end
@@ -136,6 +142,7 @@ local function update_turn(sat, tick)
 	end
 
 	sat.rendering.orientation = sat.orientation % 1
+	if sat.glow then sat.glow.orientation = sat.orientation % 1 end
 	if sat.flame then
 		place_flame(sat.flame, sat)
 		if sat.ignition.valid then place_flame(sat.ignition, sat) end
@@ -159,6 +166,7 @@ local function update_fade(sat)
 	if alpha < 1 then
 		local color = { alpha, alpha, alpha, alpha } -- premultiplied
 		sat.rendering.color = color
+		if sat.glow then sat.glow.color = color end
 		if sat.flame then sat.flame.color = color end
 	end
 	return alpha == 0
@@ -181,12 +189,6 @@ local function on_satellite_departed(sat)
 end
 
 local function update_satellite(sat, tick)
-	-- TODO: remove, satellites in saves from before the simulated turn was added
-	if not sat.angular_velocity then
-		sat.e.destroy()
-		return
-	end
-
 	local elasped = tick - sat.ejection_tick
 
 	update_turn(sat, tick)
@@ -197,16 +199,18 @@ local function update_satellite(sat, tick)
 		end
 		sat.flame.visible = tick >= sat.thrust_tick + IGNITION_TICKS
 		if update_fade(sat) then
-			sat.e.destroy() -- next poll counts it as departed
+			sat.e.destroy() -- next update counts it as departed
 			return
 		end
-		-- thrust along wherever it points right now, it may still be turning
-		local thrust_x, thrust_y = front_direction(sat)
-		sat.vx = sat.vx + thrust_x * THRUST_ACCEL * M.POLL_TICKS
-		sat.vy = sat.vy + thrust_y * THRUST_ACCEL * M.POLL_TICKS
-		-- no teleport: fast enough that truncating the movement doesn't matter, and the path no longer has to match anything
-		local dir, speed = normalized_vector{ x=sat.vx, y=sat.vy }
-		sat.e.set_movement(dir, speed)
+		if (tick - sat.thrust_tick) % THRUST_UPDATE_TICKS == 0 then
+			-- thrust along wherever it points right now, it may still be turning
+			local thrust_x, thrust_y = front_direction(sat)
+			sat.vx = sat.vx + thrust_x * THRUST_ACCEL * THRUST_UPDATE_TICKS
+			sat.vy = sat.vy + thrust_y * THRUST_ACCEL * THRUST_UPDATE_TICKS
+			-- no teleport: fast enough that truncating the movement doesn't matter, and the path no longer has to match anything
+			local dir, speed = normalized_vector{ x=sat.vx, y=sat.vy }
+			sat.e.set_movement(dir, speed)
+		end
 		return
 	end
 
@@ -215,7 +219,7 @@ local function update_satellite(sat, tick)
 	local target_x = sat.ejection_position.x + sat.ejection_velocity[1] * elasped
 	local target_y = sat.ejection_position.y + sat.ejection_velocity[2] * elasped
 	
-	--local next_t = elasped + M.POLL_TICKS
+	--local next_t = elasped + UPDATE_TICKS
 	--local next_target_x = sat.ejection_position.x + sat.ejection_velocity[1] * next_t
 	--local next_target_y = sat.ejection_position.y + sat.ejection_velocity[2] * next_t
 --
@@ -233,8 +237,8 @@ local function update_satellite(sat, tick)
 	sat.e.teleport{x=target_x,y=target_y}
 
 	--local dir, speed = normalized_vector{
-	--	x = movement_x / M.POLL_TICKS,
-	--	y = movement_y / M.POLL_TICKS,
+	--	x = movement_x / UPDATE_TICKS,
+	--	y = movement_y / UPDATE_TICKS,
 	--}
 	--sat.e.set_movement(dir, speed)
 	
@@ -266,7 +270,7 @@ local function launch(platform, ejected, tick)
 			target = entity,
 			orientation = (throw_orientation + initial_tilt) % 1,
 			render_layer = "object",
-		}
+		},
 	}
 	storage.ejected_satellites[entity.unit_number] = sat
 	
@@ -276,24 +280,30 @@ local function launch(platform, ejected, tick)
 	update_satellite(sat, tick)
 end
 
-function M.on_poll(event)
+function M.on_launch_poll(event)
 	local tick = event.tick
 	for _,force in pairs(game.forces) do
 		for _,platform in pairs(force.platforms) do
 			for _,ejected in pairs(platform.ejected_items) do
 				-- Stateless window: entries created since the last poll, excluding the current tick, so a same-tick ejection is seen next poll
-				if ejected.item.name.name == SATELLITE_ITEM and ejected.creation_tick >= tick - M.POLL_TICKS and ejected.creation_tick < tick then
+				if ejected.item.name.name == SATELLITE_ITEM and ejected.creation_tick >= tick - M.LAUNCH_POLL_TICKS and ejected.creation_tick < tick then
 					launch(platform, ejected, tick)
 				end
 			end
 		end
 	end
+end
+
+function M.on_tick(event)
+	local satellites = storage.ejected_satellites
+	if not satellites or next(satellites) == nil then return end
 	
-	for uid,sat in pairs(storage.ejected_satellites or {}) do
+	local tick = event.tick
+	for uid,sat in pairs(satellites) do
 		if sat.e.valid then
 			update_satellite(sat, tick)
 		else -- not removed by on_entity_died, so it wasn't a crash
-			storage.ejected_satellites[uid] = nil
+			satellites[uid] = nil
 			on_satellite_departed(sat)
 		end
 	end
@@ -307,6 +317,30 @@ function M.on_entity_died(event)
 		satellites[entity.unit_number] = nil
 		on_satellite_crashed(sat, entity.position)
 	end
+end
+
+-- Test looks placed in the editor: only draw them, they stay wherever they were placed
+M.BUILT_FILTER = {}
+for _,variant in pairs(const.SATELLITE_VARIANTS) do
+	table.insert(M.BUILT_FILTER, {filter="name", name=const.LAUNCHED_SAT.."-"..variant})
+end
+
+function M.on_built_entity(event)
+	local entity = event.entity
+	local variant = entity.name:sub(#const.LAUNCHED_SAT + 2)
+	rendering.draw_sprite{
+		sprite = const.SATELLITE_SPRITE.."-"..variant,
+		surface = entity.surface,
+		target = entity,
+		render_layer = "object",
+	}
+	rendering.draw_sprite{
+		sprite = const.SATELLITE_GLOW_SPRITE,
+		blink_interval = GLOW_BLINK_TICKS,
+		surface = entity.surface,
+		target = entity,
+		render_layer = "object",
+	}
 end
 
 return M
