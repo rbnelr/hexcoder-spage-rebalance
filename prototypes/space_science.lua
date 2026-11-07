@@ -87,11 +87,12 @@ end
 -- Thrown satellites become this asteroid (see control/space_science.lua)
 local function launched_satellite()
 	local icon = const.MOD_DIR.."/graphics/icons/satellite.png"
-	-- the icon upscaled 4x with Lanczos, used by launched satellites
-	local colour = const.MOD_DIR.."/graphics/entity/satellite/satellite-colour.png"
-	local shift = {0.1, -0.1} -- tiles, towards the solar panel, to cover the ejected item better
+	local sat_scale = const.SATELLITE_SCALE
+	local shift = {0.35 * sat_scale, 0.04 * sat_scale} -- tiles, towards the solar panel, to cover the ejected item better
+	-- smooth when zoomed out and rotating, no linear-magnification so it stays subtly pixelated when zoomed in
+	local sprite_flags = {"mipmap", "linear-minification", "linear-mip-level"}
 
-	local function satellite_asteroid(name, localised_name)
+	local function satellite_asteroid()
 		-- was asteroid explosion and chunks. A satellite is made of a radar and solar panels: radar explosion for the flash, metal and sound
 		local crash_effects = {
 			{type="create-explosion", entity_name="radar-explosion"},
@@ -113,8 +114,8 @@ local function launched_satellite()
 		end
 
 		return meld(table.deepcopy(data.raw["asteroid"]["small-metallic-asteroid"]), {
-			name = name,
-			localised_name = localised_name,
+			name = const.LAUNCHED_SAT,
+			localised_name = {"item-name.satellite"},
 			dying_trigger_effect = meld.overwrite(crash_effects),
 			resistances = {
 				{type="physical", percent=0},
@@ -127,6 +128,8 @@ local function launched_satellite()
 
 			icon = icon,
 			graphics_set = meld.delete(),
+			-- the normal radar sound, follows the asteroid
+			working_sound = table.deepcopy(data.raw["radar"]["radar"].working_sound),
 		})
 	end
 	local function thruster_animation(name, file)
@@ -147,15 +150,15 @@ local function launched_satellite()
 
 	data:extend{
 		-- no graphics: asteroids render at a random start rotation and entity.orientation has no effect, control/space_science.lua draws SATELLITE_SPRITE instead
-		satellite_asteroid(const.LAUNCHED_SAT, {"item-name.satellite"}),
+		satellite_asteroid(),
 		{
 			type = "sprite",
 			name = const.SATELLITE_SPRITE,
-			filename = colour,
-			size = 256,
-			scale = 0.25, -- 2 tiles
+			filename = const.MOD_DIR.."/graphics/entity/satellite/satellite-colour.png",
+			size = 128,
+			scale = 0.5 * sat_scale, -- 2 tiles at 1
 			shift = shift,
-			flags = {"linear-minification", "linear-magnification"},
+			flags = sprite_flags,
 		},
 		-- the beacon. Render objects have no normal maps, but sprites can be additive and glow
 		{
@@ -163,8 +166,9 @@ local function launched_satellite()
 			name = const.SATELLITE_GLOW_SPRITE,
 			filename = const.MOD_DIR.."/graphics/entity/satellite/satellite-glow.png",
 			size = 128,
-			scale = 0.5, -- 2 tiles
+			scale = 0.5 * sat_scale, -- 2 tiles at 1
 			shift = shift,
+			flags = sprite_flags,
 			blend_mode = "additive",
 			draw_as_glow = true,
 		},
@@ -181,21 +185,6 @@ local function launched_satellite()
 		},
 	}
 	
-	-- test looks from tools/make_satellite_sprite.py, without filtering for a subtle pixelated look
-	for _,variant in pairs(const.SATELLITE_VARIANTS) do
-		data:extend{
-			satellite_asteroid(const.LAUNCHED_SAT.."-"..variant, {"", "Satellite ("..variant..")"}),
-			{
-				type = "sprite",
-				name = const.SATELLITE_SPRITE.."-"..variant,
-				filename = const.MOD_DIR.."/graphics/entity/satellite/variants/variant-"..variant..".png",
-				size = 128,
-				scale = 0.5, -- 2 tiles
-				shift = shift,
-			},
-		}
-	end
-	
 	-- we have to hide ejected item with satellite on top, so make this faster, likely nobody cares
 	data.raw["utility-constants"]["default"].ejected_item_lifetime = 12 * 60 -- was 1500 (25sec)
 	data.raw["utility-constants"]["default"].ejected_item_speed = 5 * 1/256 -- was 0.005
@@ -203,17 +192,19 @@ local function launched_satellite()
 end
 
 ---- Film capsules
--- Planned: launching a satellite makes film capsules drift past the platform as asteroid chunks. Not spawned yet, prototypes commented out
+-- Planned: launching a satellite makes film capsules drift past the platform as asteroid chunks. Not spawned yet
 -- Theme: Corona spy satellites dropped film canisters that aircraft caught in mid-air, here collector arms catch them
 local function film_capsule()
 	local item_sounds = require("__base__.prototypes.item_sounds")
-	local dir = const.MOD_DIR.."/graphics/entity/film-capsule/film-capsule-"
+	local dir = const.MOD_DIR.."/graphics/entity/capsule/film-capsule-"
 	local icon = const.MOD_DIR.."/graphics/icons/film-capsule.png"
+	local chunk_scale = 0.5 -- 64 px images, so 0.5 is 1 tile. Vanilla chunks are 50 px at 0.5
+	local chunk_brightness = 1.1 -- near white like plastic, was 0.9 on metallic chunks
 
 	local variations = {}
 	for i=1,4 do
 		local function map(kind, premul_alpha)
-			return { filename=dir..kind.."-0"..i..".png", premul_alpha=premul_alpha, size=64, scale=0.5 }
+			return { filename=dir..kind.."-0"..i..".png", premul_alpha=premul_alpha, size=64, scale=chunk_scale }
 		end
 		variations[i] = {
 			color_texture = map("colour"),
@@ -224,31 +215,48 @@ local function film_capsule()
 	end
 
 	data:extend{
-		-- mirrors metallic-asteroid-chunk, without the rock particles and explosion
-		--{
-		--	type = "asteroid-chunk",
-		--	name = const.FILM_CAPSULE,
-		--	localised_description = {"item-description."..const.FILM_CAPSULE},
-		--	icon = icon,
-		--	subgroup = "space-material",
-		--	order = "e[film-capsule]-a[chunk]",
-		--	minable = { mining_time = 0.2, result = const.FILM_CAPSULE },
-		--	graphics_set = meld(table.deepcopy(data.raw["asteroid-chunk"]["metallic-asteroid-chunk"].graphics_set), {
-		--		variations = meld.overwrite(variations),
-		--	}),
-		--},
-		--{
-		--	type = "item",
-		--	name = const.FILM_CAPSULE,
-		--	icon = icon,
-		--	subgroup = "space-material",
-		--	order = "e[film-capsule]-b[item]",
-		--	stack_size = 1,
-		--	weight = 100 * kg,
-		--	inventory_move_sound = item_sounds.electric_small_inventory_move,
-		--	pick_sound = item_sounds.electric_small_inventory_pickup,
-		--	drop_sound = item_sounds.electric_small_inventory_move,
-		--},
+		-- mirrors metallic-asteroid-chunk, including its particles and explosion
+		{
+			type = "asteroid-chunk",
+			name = const.FILM_CAPSULE,
+			localised_name = {"asteroid-chunk-name.film-capsule"},
+			localised_description = {"item-description.film-capsule"},
+			icon = icon,
+			subgroup = "space-material",
+			order = "e[film-capsule]-a[chunk]",
+			dying_trigger_effect = table.deepcopy(data.raw["asteroid-chunk"]["metallic-asteroid-chunk"].dying_trigger_effect),
+			minable = {
+				mining_time = 0.2,
+				result = const.FILM_CAPSULE,
+				mining_particle = data.raw["asteroid-chunk"]["metallic-asteroid-chunk"].minable.mining_particle,
+			},
+			graphics_set = meld(table.deepcopy(data.raw["asteroid-chunk"]["metallic-asteroid-chunk"].graphics_set), {
+				variations = meld.overwrite(variations),
+				brightness = chunk_brightness,
+			}),
+			rotation_speed = 0.005, -- was 0.0015
+		},
+		{
+			type = "item",
+			name = const.FILM_CAPSULE,
+			localised_name = {"item-name.film-capsule"},
+			localised_description = {"item-description.film-capsule"},
+			icon = icon,
+			-- red bands glow on belts, same setup as vanilla nuclear-fuel. Icons in the inventory and chunks can't glow
+			pictures = {
+				layers = {
+					{filename = icon, size = 64, scale = 0.5, mipmap_count = 4},
+					{filename = const.MOD_DIR.."/graphics/icons/film-capsule-glow.png", size = 64, scale = 0.5, blend_mode = "additive", draw_as_glow = true},
+				},
+			},
+			subgroup = "space-material",
+			order = "e[film-capsule]-b[item]",
+			stack_size = 1,
+			weight = 20 * kg,
+			inventory_move_sound = item_sounds.electric_small_inventory_move,
+			pick_sound = item_sounds.electric_small_inventory_pickup,
+			drop_sound = item_sounds.electric_small_inventory_move,
+		},
 	}
 end
 
@@ -294,7 +302,7 @@ end
 function M.data()
 	satellite()
 	launched_satellite()
-	--film_capsule()
+	film_capsule()
 	science()
 	techs()
 end

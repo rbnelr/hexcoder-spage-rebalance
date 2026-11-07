@@ -26,11 +26,14 @@ local M = {}
 -- launch() places a late satellite where the item is by now
 M.LAUNCH_POLL_TICKS = 15
 local UPDATE_TICKS = 2 -- on_tick
-local THRUST_UPDATE_TICKS = 12 -- the engine moves it smoothly between these, the small speed steps do not show
+local THRUST_UPDATE_TICKS = 4 -- the engine moves it smoothly between these, the small speed steps do not show
 local SATELLITE_ITEM = "satellite"
 
 -- orientation the dish points to in the graphics, this is the front of the satellite
-local SPRITE_FRONT = 0.36
+local SPRITE_FRONT = 0.37 -- angle where the front is
+-- above the ejected item, which can't be hidden otherwise. The flame goes just under the satellite
+local RENDER_LAYER = "air-object"
+local FLAME_RENDER_LAYER = "smoke"
 local GLOW_BLINK_TICKS = 30 -- beacon on and off time, same as game alerts
 local FINAL_ROT_VARIATION = 35/360 -- rotations, +- front from the throw direction after the turn
 local INITIAL_ROT_VARIATION = 5/360 -- rotations, +- at launch
@@ -38,11 +41,12 @@ local MAX_DRIFT = 4/360/60 -- rotations/tick, slow random rotation until the tur
 local TURN_LEAD_TICKS = 0 -- starts turning this long before the thruster fires
 local THRUST_LEAD_TICKS = 100 -- starts thrusting before item actually fades (it's already barely visible)
 local TURN_MAX_SPEED = 360/360/60 -- rotations/tick
-local TURN_ACCEL = 14/360/3600 -- rotations/tick^2, 1 s to reach the max speed
+local TURN_ACCEL = 9/360/3600 -- rotations/tick^2, 1 s to reach the max speed
 local TURN_BRAKE_MARGIN = 0.9
 local THRUST_ACCEL = 0.00025 -- tiles/tick^2
-local FLAME_OFFSET = 1.4 -- tiles behind the center
-local FLAME_SCALE = 0.7
+-- the sprites are scaled in their prototypes
+local FLAME_OFFSET = 1.2 * const.SATELLITE_SCALE -- tiles behind the center
+local FLAME_SCALE = 0.6 * const.SATELLITE_SCALE
 local FLAME_ANIMATION_SPEED = 0.5 -- frames/tick, same as vanilla
 local FLAME_FRAMES = 10
 local IGNITION_TICKS = FLAME_FRAMES / FLAME_ANIMATION_SPEED
@@ -53,6 +57,18 @@ local IGNITION_TICKS = FLAME_FRAMES / FLAME_ANIMATION_SPEED
 local DESPAWN_DISTANCE_UP = 72
 local DESPAWN_DISTANCE_OTHER = 48
 local FADE_RANGE = 16
+
+-- Film capsules: all spawned at once when a satellite departs, on a rectangle around the platform
+local CAPSULES_MIN = 1
+local CAPSULES_MAX = 23
+local SPAWN_INSET = -12 -- start invisible?
+-- add timing spread 40sec +- 20sec ?
+-- tiles along the perimeter, at most this far from where the satellite left, bell shaped. nil: anywhere on the perimeter
+local CAPSULE_POSITION_SPREAD = 20 -- TODO: make sure direction matches an orbit (ie no matter which side they spawn at), but then should never spawn in opposite side -> project rectangle from direction and spread from there
+-- each aims at a random point of the platform, then gets these
+local CAPSULE_SPEED = 0.09 -- tiles/tick, same as vanilla chunks at nauvis
+local CAPSULE_SPEED_SPREAD = 0.008 -- tiles/tick, at most, bell shaped
+local CAPSULE_DIRECTION_SPREAD = 5/360 -- rotations, at most, bell shaped
 
 -- prints when a satellite crashes or departs
 local DEBUG = true
@@ -100,7 +116,7 @@ local function fire_thruster(sat, tick)
 			target = sat.e,
 			x_scale = FLAME_SCALE,
 			y_scale = FLAME_SCALE,
-			render_layer = "object-under",
+			render_layer = FLAME_RENDER_LAYER,
 		}
 		place_flame(flame, sat)
 		return flame
@@ -181,11 +197,99 @@ local function on_satellite_crashed(sat, position)
 	--if DEBUG then game.print("satellite crashed at "..serpent.line(position)) end
 end
 
+-- -1 to 1, more likely near 0
+local function bell_random()
+	return (math.random() + math.random() + math.random()) / 1.5 - 1
+end
+
+-- Outer edges of all built tiles. Scans the whole surface
+---@param surface LuaSurface
+---@return {left:number, top:number, right:number, bottom:number}?
+local function platform_bounds(surface)
+	local tiles = surface.find_tiles_filtered{ name={"empty-space", "out-of-map"}, invert=true }
+	if #tiles == 0 then return nil end
+	local left, top, right, bottom = math.huge, math.huge, -math.huge, -math.huge
+	for _,tile in pairs(tiles) do
+		local position = tile.position
+		left = math.min(left, position.x)
+		top = math.min(top, position.y)
+		right = math.max(right, position.x + 1) -- position is the top left corner of the tile
+		bottom = math.max(bottom, position.y + 1)
+	end
+	return { left=left, top=top, right=right, bottom=bottom }
+end
+
+-- Distance along the perimeter, clockwise from the top left corner, where a ray from inside the box leaves it
+local function perimeter_exit(box, x, y, dir_x, dir_y)
+	local width, height = box.right - box.left, box.bottom - box.top
+	local to_x = dir_x > 0 and (box.right - x) / dir_x or dir_x < 0 and (box.left - x) / dir_x or math.huge
+	local to_y = dir_y > 0 and (box.bottom - y) / dir_y or dir_y < 0 and (box.top - y) / dir_y or math.huge
+	if to_y <= to_x then
+		local exit_x = x + dir_x * to_y
+		if dir_y < 0 then return exit_x - box.left end
+		return width + height + box.right - exit_x
+	end
+	local exit_y = y + dir_y * to_x
+	if dir_x > 0 then return width + exit_y - box.top end
+	return 2 * width + height + box.bottom - exit_y
+end
+
+-- Inverse of perimeter_exit
+local function perimeter_point(box, distance)
+	local width, height = box.right - box.left, box.bottom - box.top
+	distance = distance % (2 * (width + height))
+	if distance < width then return { x=box.left + distance, y=box.top } end
+	distance = distance - width
+	if distance < height then return { x=box.right, y=box.top + distance } end
+	distance = distance - height
+	if distance < width then return { x=box.right - distance, y=box.bottom } end
+	return { x=box.left, y=box.bottom - (distance - width) }
+end
+
+---@param sat EjectedSat
+local function spawn_capsules(sat)
+	local platform = sat.platform
+	local bounds = platform_bounds(platform.surface)
+	if not bounds then return end
+
+	local box = {
+		left = bounds.left - DESPAWN_DISTANCE_OTHER + SPAWN_INSET,
+		top = bounds.top - DESPAWN_DISTANCE_UP + SPAWN_INSET,
+		right = bounds.right + DESPAWN_DISTANCE_OTHER - SPAWN_INSET,
+		bottom = bounds.bottom + DESPAWN_DISTANCE_OTHER - SPAWN_INSET,
+	}
+	local perimeter = 2 * (box.right - box.left + box.bottom - box.top)
+	-- the thruster turns it a bit, the throw direction is close enough
+	local dir = normalized_vector(sat.ejection_velocity)
+	local exit = perimeter_exit(box, sat.ejection_position.x, sat.ejection_position.y, dir.x, dir.y)
+
+	local chunks = {}
+	for i=1,math.random(CAPSULES_MIN, CAPSULES_MAX) do
+		local distance = CAPSULE_POSITION_SPREAD and exit + bell_random() * CAPSULE_POSITION_SPREAD or math.random() * perimeter
+		local position = perimeter_point(box, distance)
+
+		local aim_x = bounds.left + math.random() * (bounds.right - bounds.left)
+		local aim_y = bounds.top + math.random() * (bounds.bottom - bounds.top)
+		local angle = math.atan2(aim_y - position.y, aim_x - position.x) + bell_random() * CAPSULE_DIRECTION_SPREAD * 2*math.pi
+		local speed = CAPSULE_SPEED + bell_random() * CAPSULE_SPEED_SPREAD
+
+		chunks[i] = {
+			name = const.FILM_CAPSULE,
+			position = position,
+			movement = { math.cos(angle) * speed, math.sin(angle) * speed },
+		}
+	end
+	platform.create_asteroid_chunks(chunks)
+
+	if DEBUG then game.print(#chunks.." capsules from "..platform.name..", around "..serpent.line(perimeter_point(box, exit))) end
+end
+
 -- Left the platform: faded out, or removed by the game
 ---@param sat EjectedSat
 local function on_satellite_departed(sat)
 	if not (sat.platform and sat.platform.valid) then return end
 	--if DEBUG then game.print("satellite departed from "..sat.platform.name) end
+	spawn_capsules(sat)
 end
 
 local function update_satellite(sat, tick)
@@ -269,7 +373,15 @@ local function launch(platform, ejected, tick)
 			surface = platform.surface,
 			target = entity,
 			orientation = (throw_orientation + initial_tilt) % 1,
-			render_layer = "object",
+			render_layer = RENDER_LAYER,
+		},
+		glow = rendering.draw_sprite{
+			sprite = const.SATELLITE_GLOW_SPRITE,
+			blink_interval = GLOW_BLINK_TICKS,
+			surface = platform.surface,
+			target = entity,
+			orientation = (throw_orientation + initial_tilt) % 1,
+			render_layer = RENDER_LAYER,
 		},
 	}
 	storage.ejected_satellites[entity.unit_number] = sat
@@ -317,30 +429,6 @@ function M.on_entity_died(event)
 		satellites[entity.unit_number] = nil
 		on_satellite_crashed(sat, entity.position)
 	end
-end
-
--- Test looks placed in the editor: only draw them, they stay wherever they were placed
-M.BUILT_FILTER = {}
-for _,variant in pairs(const.SATELLITE_VARIANTS) do
-	table.insert(M.BUILT_FILTER, {filter="name", name=const.LAUNCHED_SAT.."-"..variant})
-end
-
-function M.on_built_entity(event)
-	local entity = event.entity
-	local variant = entity.name:sub(#const.LAUNCHED_SAT + 2)
-	rendering.draw_sprite{
-		sprite = const.SATELLITE_SPRITE.."-"..variant,
-		surface = entity.surface,
-		target = entity,
-		render_layer = "object",
-	}
-	rendering.draw_sprite{
-		sprite = const.SATELLITE_GLOW_SPRITE,
-		blink_interval = GLOW_BLINK_TICKS,
-		surface = entity.surface,
-		target = entity,
-		render_layer = "object",
-	}
 end
 
 return M
